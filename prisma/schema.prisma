@@ -98,14 +98,21 @@ model Event {
   updatedAt   DateTime @updatedAt
 }
 
+enum BookingStatus {
+  PENDING
+  PAID
+  CANCELED
+}
+
 model Booking {
   id        String   @id @default(cuid())
   userId    String
   eventId   String
-  status    String   // PAID, PENDING, CANCELED
+  status    BookingStatus @default(PENDING)
   
   user      User     @relation(fields: [userId], references: [id])
   event     Event    @relation(fields: [eventId], references: [id])
   
+  expiresAt DateTime?
   createdAt DateTime @default(now())
 }

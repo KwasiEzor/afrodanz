@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { bookEvent } from '@/app/actions/bookings';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface BookingButtonProps {
   eventId: string;
@@ -27,11 +28,12 @@ export function BookingButton({ eventId, hasUser, spotsLeft, alreadyBooked }: Bo
       if (result.url) {
         window.location.href = result.url;
       } else if (result.success) {
+        toast.success('Booking successful!');
         router.push('/dashboard?booking_success=true');
       }
     } catch (error: any) {
       console.error(error);
-      alert(error.message || 'Failed to book event');
+      toast.error(error.message || 'Failed to book event');
     } finally {
       setLoading(false);
     }

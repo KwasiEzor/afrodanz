@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { X, Calendar, MapPin, Euro, Users, Info } from 'lucide-react';
 import { useState } from 'react';
 import { createEvent, updateEvent } from '@/app/actions/events';
+import { toast } from 'sonner';
 
 interface CreateEventFormProps {
   onClose: () => void;
@@ -12,10 +13,12 @@ interface CreateEventFormProps {
 
 export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
+    setErrors({});
     
     const formData = new FormData(e.currentTarget);
     const result = event 
@@ -23,9 +26,15 @@ export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
       : await createEvent(formData);
 
     if (result.success) {
+      toast.success(event ? 'Event updated!' : 'Event created!');
       onClose();
     } else {
-      alert('Something went wrong. Check if your database is connected.');
+      if (result.fields) {
+        setErrors(result.fields);
+        toast.error('Please check the form for errors');
+      } else {
+        toast.error(result.error || 'Something went wrong');
+      }
     }
     setLoading(false);
   }
@@ -67,8 +76,9 @@ export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
               <label className="text-xs font-black uppercase tracking-widest text-muted">Title</label>
               <div className="relative">
                 <Info className="absolute left-3 top-3 w-4 h-4 text-muted" />
-                <input required name="title" defaultValue={event?.title} placeholder="Amapiano Workshop" className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl" />
+                <input required name="title" defaultValue={event?.title} placeholder="Amapiano Workshop" className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl ${errors.title ? 'ring-2 ring-red-500' : ''}`} />
               </div>
+              {errors.title && <p className="text-xs text-red-500 font-bold">{errors.title[0]}</p>}
             </div>
             
             <div className="space-y-2">
@@ -108,15 +118,17 @@ export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
               <label className="text-xs font-black uppercase tracking-widest text-muted">Price (€)</label>
               <div className="relative">
                 <Euro className="absolute left-3 top-3 w-4 h-4 text-muted" />
-                <input required name="price" type="number" step="0.01" defaultValue={event?.price ? event.price / 100 : ""} placeholder="25" className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl" />
+                <input required name="price" type="number" step="0.01" defaultValue={event?.price ? event.price / 100 : ""} placeholder="25" className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl ${errors.price ? 'ring-2 ring-red-500' : ''}`} />
               </div>
+              {errors.price && <p className="text-xs text-red-500 font-bold">{errors.price[0]}</p>}
             </div>
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-muted">Capacity</label>
               <div className="relative">
                 <Users className="absolute left-3 top-3 w-4 h-4 text-muted" />
-                <input required name="capacity" type="number" defaultValue={event?.capacity} placeholder="30" className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl" />
+                <input required name="capacity" type="number" defaultValue={event?.capacity} placeholder="30" className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl ${errors.capacity ? 'ring-2 ring-red-500' : ''}`} />
               </div>
+              {errors.capacity && <p className="text-xs text-red-500 font-bold">{errors.capacity[0]}</p>}
             </div>
           </div>
 

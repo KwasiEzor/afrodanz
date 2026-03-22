@@ -13,77 +13,119 @@ export async function bookEvent(eventId: string) {
 
   const userId = session.user.id;
 
-  // 1. Fetch Event Details
-  const event = await prisma.event.findUnique({
-    where: { id: eventId },
-    include: {
-      _count: {
-        select: { bookings: true }
-      }
-    }
-  });
-
-  if (!event) throw new Error('Event not found');
-
-  // 2. Check Capacity
-  if (event._count.bookings >= event.capacity) {
-    throw new Error('This event is fully booked');
-  }
-
-  // 3. Check if already booked
-  const existingBooking = await prisma.booking.findFirst({
-    where: {
-      userId,
-      eventId,
-      status: 'PAID'
-    }
-  });
-
-  if (existingBooking) {
-    throw new Error('You have already booked this event');
-  }
-
-  // 4. Handle Payment Logic
-  // If price > 0, we need to create a Stripe Checkout Session
-  if (event.price > 0) {
-    const checkoutSession = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'eur',
-            product_data: {
-              name: event.title,
-              description: `${event.category} - ${event.location}`,
-            },
-            unit_amount: event.price,
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?booking_success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/?booking_canceled=true`,
-      metadata: {
-        userId,
-        eventId
+  // 1. Fetch Event and check capacity atomically
+  return await prisma.$transaction(async (tx) => {
+    const event = await tx.event.findUnique({
+      where: { id: eventId },
+      include: {
+        _count: {
+          select: { 
+            bookings: { 
+              where: { status: 'PAID' } 
+            } 
+          }
+        }
       }
     });
 
-    return { url: checkoutSession.url };
-  }
+    if (!event) throw new Error('Event not found');
 
-  // 5. If Free Event (Price = 0)
-  await prisma.booking.create({
-    data: {
-      userId,
-      eventId,
-      status: 'PAID'
+    // 2. Count active pending bookings (not expired, and not our own if we are retrying)
+    const activePendingCount = await tx.booking.count({
+      where: {
+        eventId,
+        status: 'PENDING',
+        expiresAt: {
+          gt: new Date()
+        },
+        NOT: {
+          userId
+        }
+      }
+    });
+
+    const totalActiveBookings = event._count.bookings + activePendingCount;
+
+    if (totalActiveBookings >= event.capacity) {
+      throw new Error('This event is fully booked');
     }
-  });
 
-  revalidatePath('/dashboard');
-  return { success: true };
+    // 3. Check if already booked (PAID)
+    const existingPaidBooking = await tx.booking.findFirst({
+      where: {
+        userId,
+        eventId,
+        status: 'PAID'
+      }
+    });
+
+    if (existingPaidBooking) {
+      throw new Error('You have already booked this event');
+    }
+
+    // 4. Create or update PENDING booking
+    // This "holds" the spot for 15 minutes
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    
+    const booking = await tx.booking.upsert({
+      where: {
+        id: (await tx.booking.findFirst({ 
+          where: { userId, eventId, status: 'PENDING' } 
+        }))?.id || 'new-booking'
+      },
+      update: {
+        expiresAt
+      },
+      create: {
+        userId,
+        eventId,
+        status: 'PENDING',
+        expiresAt
+      }
+    });
+
+    // 5. Handle Payment Logic
+    if (event.price > 0) {
+      const checkoutSession = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'eur',
+              product_data: {
+                name: event.title,
+                description: `${event.category} - ${event.location}`,
+              },
+              unit_amount: event.price,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?booking_success=true`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/events/${event.slug}?booking_canceled=true`,
+        metadata: {
+          userId,
+          eventId,
+          bookingId: booking.id
+        }
+      });
+
+      return { url: checkoutSession.url };
+    }
+
+    // 6. If Free Event (Price = 0)
+    await tx.booking.update({
+      where: { id: booking.id },
+      data: {
+        status: 'PAID',
+        expiresAt: null
+      }
+    });
+
+    revalidatePath('/dashboard');
+    return { success: true };
+  });
 }
 
 export async function createSubscriptionSession(planName: string) {

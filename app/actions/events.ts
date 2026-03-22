@@ -2,6 +2,18 @@
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
+
+const EventSchema = z.object({
+  title: z.string().min(3, "Title must be at least 3 characters"),
+  description: z.string().optional(),
+  date: z.coerce.date(),
+  location: z.string().min(2, "Location is required"),
+  price: z.coerce.number().min(0, "Price must be positive"),
+  capacity: z.coerce.number().int().min(1, "Capacity must be at least 1"),
+  category: z.enum(['Workshop', 'Class', 'Intensive']),
+  image: z.string().url().optional().or(z.literal('')),
+});
 
 async function checkAdmin() {
   const session = await auth();
@@ -13,7 +25,19 @@ async function checkAdmin() {
 export async function createEvent(formData: FormData) {
   await checkAdmin();
 
-  const title = formData.get('title') as string;
+  const rawData = Object.fromEntries(formData.entries());
+  const validated = EventSchema.safeParse(rawData);
+
+  if (!validated.success) {
+    return { 
+      success: false, 
+      error: "Validation failed",
+      fields: validated.error.flatten().fieldErrors
+    };
+  }
+
+  const { title, description, date, location, price, capacity, category, image } = validated.data;
+  
   const slug = title
     .toLowerCase()
     .trim()
@@ -21,13 +45,7 @@ export async function createEvent(formData: FormData) {
     .replace(/[\s_-]+/g, '-')
     .replace(/^-+|-+$/g, '') + '-' + Math.random().toString(36).substring(2, 7);
 
-  const description = formData.get('description') as string;
-  const date = new Date(formData.get('date') as string);
-  const location = formData.get('location') as string;
-  const price = Math.round(parseFloat(formData.get('price') as string) * 100); // Store in cents
-  const capacity = parseInt(formData.get('capacity') as string);
-  const category = formData.get('category') as string;
-  const image = formData.get('image') as string || null;
+  const priceInCents = Math.round(price * 100);
 
   try {
     await prisma.event.create({
@@ -37,10 +55,10 @@ export async function createEvent(formData: FormData) {
         description,
         date,
         location,
-        price,
+        price: priceInCents,
         capacity,
         category,
-        image,
+        image: image || null,
       },
     });
 
@@ -56,33 +74,38 @@ export async function createEvent(formData: FormData) {
 export async function updateEvent(id: string, formData: FormData) {
   await checkAdmin();
 
-  const title = formData.get('title') as string;
-  const description = formData.get('description') as string;
-  const date = new Date(formData.get('date') as string);
-  const location = formData.get('location') as string;
-  const price = Math.round(parseFloat(formData.get('price') as string) * 100);
-  const capacity = parseInt(formData.get('capacity') as string);
-  const category = formData.get('category') as string;
-  const image = formData.get('image') as string || null;
+  const rawData = Object.fromEntries(formData.entries());
+  const validated = EventSchema.safeParse(rawData);
+
+  if (!validated.success) {
+    return { 
+      success: false, 
+      error: "Validation failed",
+      fields: validated.error.flatten().fieldErrors
+    };
+  }
+
+  const { title, description, date, location, price, capacity, category, image } = validated.data;
+  const priceInCents = Math.round(price * 100);
 
   try {
-    await prisma.event.update({
+    const updatedEvent = await prisma.event.update({
       where: { id },
       data: {
         title,
         description,
         date,
         location,
-        price,
+        price: priceInCents,
         capacity,
         category,
-        image,
+        image: image || null,
       },
     });
 
     revalidatePath('/admin/dashboard');
     revalidatePath('/events');
-    revalidatePath(`/events/${id}`);
+    revalidatePath(`/events/${updatedEvent.slug}`); // Fix: Use slug instead of ID for revalidation
     return { success: true };
   } catch (error) {
     console.error('Failed to update event:', error);
