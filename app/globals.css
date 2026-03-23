@@ -12,6 +12,9 @@
   --panel-strong: rgba(13, 11, 8, 0.95);
   --panel-soft: rgba(255, 248, 238, 0.04);
   --panel-border: rgba(149, 103, 69, 0.32);
+  --font-body: "Avenir Next", "Segoe UI", "Trebuchet MS", sans-serif;
+  --font-display: "Futura", "Avenir Next Condensed", "Segoe UI", sans-serif;
+  --font-space-mono: "SFMono-Regular", "Menlo", "Monaco", "Consolas", monospace;
 }
 
 @theme inline {

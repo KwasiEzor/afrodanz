@@ -1,27 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import type { CSSProperties } from "react";
-import { Space_Grotesk, Space_Mono, Sora } from "next/font/google";
 import theme from "./colors.json";
 import "./globals.css";
 import { Navbar } from "./components/Navbar";
 import { Providers } from "./providers";
 import { Toaster } from 'sonner';
-
-const bodyFont = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-body",
-});
-
-const displayFont = Sora({
-  subsets: ["latin"],
-  variable: "--font-display",
-});
-
-const monoFont = Space_Mono({
-  subsets: ["latin"],
-  variable: "--font-space-mono",
-  weight: ["400", "700"],
-});
 
 const themeStyle = {
   "--background": theme.colors.navajowhite["950"],
@@ -36,6 +19,20 @@ const themeStyle = {
   "--panel-border": "rgba(149, 103, 69, 0.32)",
 } as CSSProperties;
 
+function resolveMetadataBase() {
+  const rawUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+  if (!rawUrl) {
+    return new URL("http://localhost:3000");
+  }
+
+  try {
+    return new URL(rawUrl);
+  } catch {
+    return new URL("http://localhost:3000");
+  }
+}
+
 export const viewport: Viewport = {
   themeColor: theme.colors.navajowhite["950"],
   width: "device-width",
@@ -43,6 +40,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: resolveMetadataBase(),
   title: "AfroDanz | Authentic Afro Dance Workshops & Community",
   description: "Join the heartbeat of rhythm. Experience Amapiano, Afrobeats, and Afro-Contemporary dance workshops with world-class instructors. Book classes and join our vibrant community.",
   keywords: ["Afro Dance", "Amapiano", "Afrobeats", "Dance Workshop", "African Culture", "Dance Studio"],
@@ -83,7 +81,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body
-        className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable} site-shell antialiased selection:bg-primary selection:text-white`}
+        className="site-shell antialiased selection:bg-primary selection:text-white"
         style={themeStyle}
       >
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-primary focus:text-white">

@@ -4,7 +4,10 @@ import { ArrowUpRight, CalendarDays, Headphones, Sparkles } from 'lucide-react';
 import { Hero } from './components/Hero';
 import { EventsPreview, type EventPreviewItem } from './components/EventsPreview';
 import { Pricing } from './components/Pricing';
-import { isPrismaMissingTableError } from '@/lib/prisma-errors';
+import {
+  isPrismaDatabaseUnavailableError,
+  isPrismaMissingTableError,
+} from '@/lib/prisma-errors';
 
 const PLATFORM_PILLARS = [
   {
@@ -23,6 +26,8 @@ const PLATFORM_PILLARS = [
     body: 'A studio culture that blends training, music, and a social atmosphere into one experience.',
   },
 ];
+
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const getFeaturedEvents = () =>
@@ -52,7 +57,10 @@ export default async function Home() {
   try {
     featuredEvents = await getFeaturedEvents();
   } catch (error) {
-    if (!isPrismaMissingTableError(error, 'Event')) {
+    if (
+      !isPrismaMissingTableError(error, 'Event') &&
+      !isPrismaDatabaseUnavailableError(error)
+    ) {
       throw error;
     }
   }

@@ -23,3 +23,12 @@ export function isPrismaMissingTableError(error: unknown, tableName?: string) {
 
   return resolvedTable.endsWith(tableName);
 }
+
+export function isPrismaDatabaseUnavailableError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P1001"
+  );
+}
