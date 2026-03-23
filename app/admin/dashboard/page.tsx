@@ -14,7 +14,11 @@ export default async function AdminDashboard() {
 
   // Fetch Stats
   const [totalMembers, activeEventsCount, paidBookings] = await Promise.all([
-    prisma.user.count(),
+    prisma.user.count({
+      where: {
+        role: 'MEMBER',
+      },
+    }),
     prisma.event.count({
       where: {
         date: {

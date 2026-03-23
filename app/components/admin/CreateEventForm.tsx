@@ -1,11 +1,11 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { X, Calendar, MapPin, Euro, Users, Info } from 'lucide-react';
+import { Calendar, Euro, Info, MapPin, Users, X } from 'lucide-react';
 import { useState } from 'react';
-import { createEvent, updateEvent } from '@/app/actions/events';
-import { toast } from 'sonner';
 import type { Event } from '@prisma/client';
+import { toast } from 'sonner';
+import { createEvent, updateEvent } from '@/app/actions/events';
 
 export type EditableEventFields = Pick<
   Event,
@@ -26,79 +26,96 @@ interface CreateEventFormProps {
   event?: EditableEventFields | null;
 }
 
+function fieldClass(hasError?: boolean) {
+  return `w-full rounded-[1.3rem] border bg-white/5 px-4 py-3 text-white outline-none placeholder:text-slate-500 ${
+    hasError ? 'border-red-500/50' : 'border-white/10'
+  }`;
+}
+
 export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function handleSubmit(formEvent: React.FormEvent<HTMLFormElement>) {
+    formEvent.preventDefault();
     setLoading(true);
     setErrors({});
-    
-    const formData = new FormData(e.currentTarget);
-    const result = event 
+
+    const formData = new FormData(formEvent.currentTarget);
+    const result = event
       ? await updateEvent(event.id, formData)
       : await createEvent(formData);
 
     if (result.success) {
-      toast.success(event ? 'Event updated!' : 'Event created!');
+      toast.success(event ? 'Event updated.' : 'Event created.');
       onClose();
+    } else if (result.fields) {
+      setErrors(result.fields);
+      toast.error('Please fix the highlighted fields.');
     } else {
-      if (result.fields) {
-        setErrors(result.fields);
-        toast.error('Please check the form for errors');
-      } else {
-        toast.error(result.error || 'Something went wrong');
-      }
+      toast.error(result.error || 'Something went wrong.');
     }
+
     setLoading(false);
   }
 
-  // Format date for datetime-local input
-  const defaultDate = event?.date 
+  const defaultDate = event?.date
     ? new Date(event.date).toISOString().slice(0, 16)
-    : "";
+    : '';
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
     >
       <motion.div
-        initial={{ scale: 0.9, y: 20 }}
+        initial={{ scale: 0.96, y: 16 }}
         animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 20 }}
-        className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl"
+        exit={{ scale: 0.96, y: 16 }}
+        className="site-panel w-full max-w-3xl rounded-[2.6rem]"
       >
-        <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+        <div className="flex items-start justify-between border-b border-white/8 px-8 py-6">
           <div>
-            <h2 className="text-2xl font-black uppercase tracking-tight">{event ? 'Edit' : 'Create New'} <span className="text-primary italic">Event</span></h2>
-            <p className="text-muted text-sm">{event ? 'Modify the details of this event.' : 'Add a workshop, class, or intensive session.'}</p>
+            <p className="site-kicker mb-3">{event ? 'Edit event' : 'Create event'}</p>
+            <h2 className="site-title text-3xl font-black uppercase text-white">
+              {event ? 'Update' : 'Launch'}
+              <span className="site-highlight block">Studio Session</span>
+            </h2>
           </div>
-          <button 
+          <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-all"
+            className="rounded-full border border-white/10 bg-white/5 p-3 text-slate-300"
           >
-            <X className="w-6 h-6" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="space-y-6 px-8 py-8">
+          <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-muted">Title</label>
+              <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Title</label>
               <div className="relative">
-                <Info className="absolute left-3 top-3 w-4 h-4 text-muted" />
-                <input required name="title" defaultValue={event?.title} placeholder="Amapiano Workshop" className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl ${errors.title ? 'ring-2 ring-red-500' : ''}`} />
+                <Info className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <input
+                  required
+                  name="title"
+                  defaultValue={event?.title}
+                  placeholder="Afro Fusion Intensive"
+                  className={`${fieldClass(!!errors.title)} pl-11`}
+                />
               </div>
-              {errors.title && <p className="text-xs text-red-500 font-bold">{errors.title[0]}</p>}
+              {errors.title && <p className="text-xs font-bold text-red-400">{errors.title[0]}</p>}
             </div>
-            
+
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-muted">Category</label>
-              <select name="category" defaultValue={event?.category || "Workshop"} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl appearance-none font-bold">
+              <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Category</label>
+              <select
+                name="category"
+                defaultValue={event?.category || 'Workshop'}
+                className={fieldClass()}
+              >
                 <option>Workshop</option>
                 <option>Class</option>
                 <option>Intensive</option>
@@ -107,58 +124,107 @@ export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-muted">Description</label>
-            <textarea name="description" defaultValue={event?.description ?? ''} rows={3} placeholder="Tell us more about the rhythm..." className="w-full p-4 bg-slate-50 dark:bg-slate-800 border-none rounded-xl resize-none" />
+            <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Description</label>
+            <textarea
+              name="description"
+              defaultValue={event?.description ?? ''}
+              rows={4}
+              placeholder="Shape the session mood, difficulty, and what dancers should expect."
+              className={`${fieldClass()} resize-none`}
+            />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-muted">Date & Time</label>
+              <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Date & Time</label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-3 w-4 h-4 text-muted" />
-                <input required name="date" type="datetime-local" defaultValue={defaultDate} className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl" />
+                <Calendar className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <input
+                  required
+                  name="date"
+                  type="datetime-local"
+                  defaultValue={defaultDate}
+                  className={`${fieldClass()} pl-11`}
+                />
               </div>
             </div>
+
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-muted">Location</label>
+              <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Location</label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-3 w-4 h-4 text-muted" />
-                <input required name="location" defaultValue={event?.location} placeholder="Main Studio" className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl" />
+                <MapPin className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <input
+                  required
+                  name="location"
+                  defaultValue={event?.location}
+                  placeholder="Main Studio"
+                  className={`${fieldClass()} pl-11`}
+                />
               </div>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-muted">Price (€)</label>
+              <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Price (€)</label>
               <div className="relative">
-                <Euro className="absolute left-3 top-3 w-4 h-4 text-muted" />
-                <input required name="price" type="number" step="0.01" defaultValue={event?.price ? event.price / 100 : ""} placeholder="25" className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl ${errors.price ? 'ring-2 ring-red-500' : ''}`} />
+                <Euro className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <input
+                  required
+                  name="price"
+                  type="number"
+                  step="0.01"
+                  defaultValue={event?.price ? event.price / 100 : ''}
+                  placeholder="25"
+                  className={`${fieldClass(!!errors.price)} pl-11`}
+                />
               </div>
-              {errors.price && <p className="text-xs text-red-500 font-bold">{errors.price[0]}</p>}
+              {errors.price && <p className="text-xs font-bold text-red-400">{errors.price[0]}</p>}
             </div>
+
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-muted">Capacity</label>
+              <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Capacity</label>
               <div className="relative">
-                <Users className="absolute left-3 top-3 w-4 h-4 text-muted" />
-                <input required name="capacity" type="number" defaultValue={event?.capacity} placeholder="30" className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl ${errors.capacity ? 'ring-2 ring-red-500' : ''}`} />
+                <Users className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <input
+                  required
+                  name="capacity"
+                  type="number"
+                  defaultValue={event?.capacity}
+                  placeholder="30"
+                  className={`${fieldClass(!!errors.capacity)} pl-11`}
+                />
               </div>
-              {errors.capacity && <p className="text-xs text-red-500 font-bold">{errors.capacity[0]}</p>}
+              {errors.capacity && <p className="text-xs font-bold text-red-400">{errors.capacity[0]}</p>}
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-muted">Image URL (Optional)</label>
-            <input name="image" defaultValue={event?.image ?? ''} placeholder="https://example.com/image.jpg" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl" />
+            <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Image URL</label>
+            <input
+              name="image"
+              defaultValue={event?.image ?? ''}
+              placeholder="https://example.com/image.jpg"
+              className={fieldClass()}
+            />
           </div>
 
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
-          >
-            {loading ? (event ? 'Saving...' : 'Creating...') : (event ? 'Update Event' : 'Launch Event')}
-          </button>
+          <div className="flex flex-col gap-3 pt-2 md:flex-row">
+            <button
+              type="submit"
+              disabled={loading}
+              className="site-primary-button flex-1 rounded-full px-6 py-4 text-sm font-black uppercase tracking-[0.22em] text-white disabled:opacity-50"
+            >
+              {loading ? (event ? 'Saving...' : 'Creating...') : event ? 'Update Event' : 'Launch Event'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="site-outline-button rounded-full px-6 py-4 text-sm font-black uppercase tracking-[0.22em] text-white"
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       </motion.div>
     </motion.div>
