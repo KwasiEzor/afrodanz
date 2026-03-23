@@ -7,6 +7,8 @@ import { EventsPreview } from '@/app/components/EventsPreview';
 import { auth } from '@/lib/auth';
 import { BookingButton } from '@/app/components/BookingButton';
 
+export const dynamic = 'force-dynamic';
+
 export default async function EventDetailPage({ params }: { params: { slug: string } }) {
   const session = await auth();
   
@@ -14,21 +16,32 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
     where: { slug: params.slug },
     include: {
       bookings: {
-        where: { status: 'PAID' }
+        where: { status: 'PAID' },
       },
-      _count: { 
-        select: { 
-          bookings: { 
-            where: { status: 'PAID' } 
-          } 
-        } 
-      }
-    }
+      _count: {
+        select: {
+          bookings: {
+            where: { status: 'PAID' },
+          },
+        },
+      },
+    },
   });
 
   if (!event) notFound();
 
-  const spotsLeft = event.capacity - event._count.bookings;
+  const activePendingOthers = await prisma.booking.count({
+    where: {
+      eventId: event.id,
+      status: 'PENDING',
+      expiresAt: { gt: new Date() },
+      ...(session?.user?.id
+        ? { NOT: { userId: session.user.id } }
+        : {}),
+    },
+  });
+
+  const spotsLeft = event.capacity - event._count.bookings - activePendingOthers;
   const alreadyBooked = session?.user ? event.bookings.some(b => b.userId === session.user?.id) : false;
 
   return (
@@ -123,7 +136,7 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
       {/* More Events */}
       <section className="bg-slate-50 dark:bg-slate-900/30 py-24">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-black uppercase tracking-tight mb-12">Other <span className="text-primary italic">Ateliers</span> You'll Love</h2>
+          <h2 className="text-3xl font-black uppercase tracking-tight mb-12">Other <span className="text-primary italic">Ateliers</span> You&apos;ll Love</h2>
           <EventsPreview />
         </div>
       </section>

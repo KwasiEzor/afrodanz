@@ -44,7 +44,7 @@ export function ContactForm() {
           >
             <CheckCircle2 className="w-20 h-20 text-green-500" />
             <h3 className="text-2xl font-black uppercase">Message Sent!</h3>
-            <p className="text-slate-400 text-center">We'll get back to you faster than an Amapiano beat drop.</p>
+            <p className="text-slate-400 text-center">We&apos;ll get back to you faster than an Amapiano beat drop.</p>
           </motion.div>
         ) : (
           <motion.form 

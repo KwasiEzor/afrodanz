@@ -1,7 +1,7 @@
-import NextAuth from "next-auth"
-import { authConfig } from "./lib/auth.config"
+import { auth } from "./lib/auth"
 
-export default NextAuth(authConfig).auth
+/** Next.js 16+ proxy: same `auth` instance as API routes so JWT carries `role` for `/admin`. */
+export default auth
 
 export const config = {
   matcher: ["/dashboard/:path*", "/admin/:path*"],

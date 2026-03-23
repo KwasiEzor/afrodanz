@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "./components/Navbar";
+import { Providers } from "./providers";
 import { Toaster } from 'sonner';
 
 const geistSans = Geist({
@@ -66,10 +67,12 @@ export default function RootLayout({
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-primary focus:text-white">
           Skip to content
         </a>
-        <Navbar />
-        <main id="main-content">
-          {children}
-        </main>
+        <Providers>
+          <Navbar />
+          <main id="main-content">
+            {children}
+          </main>
+        </Providers>
         <Toaster richColors position="top-right" />
       </body>
     </html>

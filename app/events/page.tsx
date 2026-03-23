@@ -3,6 +3,8 @@ import { EventsList } from '../components/EventsList';
 
 const ITEMS_PER_PAGE = 6;
 
+export const dynamic = 'force-dynamic';
+
 export default async function EventsPage({
   searchParams,
 }: {
@@ -16,8 +18,8 @@ export default async function EventsPage({
     ...(category && { category }),
     ...(search && {
       OR: [
-        { title: { contains: search, mode: 'insensitive' as any } },
-        { description: { contains: search, mode: 'insensitive' as any } },
+        { title: { contains: search, mode: 'insensitive' as const } },
+        { description: { contains: search, mode: 'insensitive' as const } },
       ],
     }),
   };

@@ -53,8 +53,9 @@ export function EventsPreview() {
       } else if (result.success) {
         router.push('/dashboard?booking_success=true');
       }
-    } catch (error: any) {
-      alert(error.message || 'Please log in to book events');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Please log in to book events';
+      alert(message);
     } finally {
       setLoadingId(null);
     }
@@ -70,7 +71,7 @@ export function EventsPreview() {
           className="mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-black mb-4">Upcoming <span className="text-primary italic">Events</span></h2>
-          <p className="text-muted text-lg max-w-xl">Don't miss out on our special sessions and workshops.</p>
+          <p className="text-muted text-lg max-w-xl">Don&apos;t miss out on our special sessions and workshops.</p>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-8">

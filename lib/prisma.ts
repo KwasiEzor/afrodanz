@@ -4,7 +4,10 @@ import { PrismaClient } from '@prisma/client'
 
 const prismaClientSingleton = () => {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL })
-  const adapter = new PrismaPg(pool)
+  // Prisma adapter bundles its own @types/pg; root @types/pg Pool is structurally the same.
+  const adapter = new PrismaPg(
+    pool as unknown as ConstructorParameters<typeof PrismaPg>[0]
+  )
   return new PrismaClient({ adapter })
 }
 

@@ -5,10 +5,25 @@ import { X, Calendar, MapPin, Euro, Users, Info } from 'lucide-react';
 import { useState } from 'react';
 import { createEvent, updateEvent } from '@/app/actions/events';
 import { toast } from 'sonner';
+import type { Event } from '@prisma/client';
+
+export type EditableEventFields = Pick<
+  Event,
+  | 'id'
+  | 'title'
+  | 'slug'
+  | 'description'
+  | 'date'
+  | 'location'
+  | 'price'
+  | 'capacity'
+  | 'category'
+  | 'image'
+>;
 
 interface CreateEventFormProps {
   onClose: () => void;
-  event?: any; // For editing
+  event?: EditableEventFields | null;
 }
 
 export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
@@ -93,7 +108,7 @@ export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
 
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-widest text-muted">Description</label>
-            <textarea name="description" defaultValue={event?.description} rows={3} placeholder="Tell us more about the rhythm..." className="w-full p-4 bg-slate-50 dark:bg-slate-800 border-none rounded-xl resize-none" />
+            <textarea name="description" defaultValue={event?.description ?? ''} rows={3} placeholder="Tell us more about the rhythm..." className="w-full p-4 bg-slate-50 dark:bg-slate-800 border-none rounded-xl resize-none" />
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
@@ -134,7 +149,7 @@ export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
 
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-widest text-muted">Image URL (Optional)</label>
-            <input name="image" defaultValue={event?.image} placeholder="https://example.com/image.jpg" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl" />
+            <input name="image" defaultValue={event?.image ?? ''} placeholder="https://example.com/image.jpg" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl" />
           </div>
 
           <button 

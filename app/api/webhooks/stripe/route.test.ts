@@ -26,11 +26,20 @@ describe('Stripe Webhook', () => {
             eventId: 'event_1',
             bookingId: 'booking_1',
           },
+          payment_status: 'paid',
+          amount_total: 2500,
         },
       },
     };
 
-    (stripe.webhooks.constructEvent as any).mockReturnValue(mockSession);
+    vi.mocked(stripe.webhooks.constructEvent).mockReturnValue(
+      mockSession as ReturnType<typeof stripe.webhooks.constructEvent>
+    );
+
+    vi.mocked(prisma.booking.findUnique).mockResolvedValue({
+      id: 'booking_1',
+      event: { price: 2500 },
+    } as Awaited<ReturnType<typeof prisma.booking.findUnique>>);
 
     const req = new Request('http://localhost', {
       method: 'POST',
@@ -51,7 +60,7 @@ describe('Stripe Webhook', () => {
   });
 
   it('should handle customer.subscription.deleted', async () => {
-     const mockEvent = {
+    const mockEvent = {
       type: 'customer.subscription.deleted',
       data: {
         object: {
@@ -60,7 +69,9 @@ describe('Stripe Webhook', () => {
       },
     };
 
-    (stripe.webhooks.constructEvent as any).mockReturnValue(mockEvent);
+    vi.mocked(stripe.webhooks.constructEvent).mockReturnValue(
+      mockEvent as ReturnType<typeof stripe.webhooks.constructEvent>
+    );
 
     const req = new Request('http://localhost', {
       method: 'POST',

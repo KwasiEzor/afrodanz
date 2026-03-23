@@ -31,9 +31,10 @@ export function BookingButton({ eventId, hasUser, spotsLeft, alreadyBooked }: Bo
         toast.success('Booking successful!');
         router.push('/dashboard?booking_success=true');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || 'Failed to book event');
+      const message = error instanceof Error ? error.message : 'Failed to book event';
+      toast.error(message);
     } finally {
       setLoading(false);
     }

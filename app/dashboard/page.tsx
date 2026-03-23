@@ -3,6 +3,8 @@ import prisma from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import DashboardUI from './DashboardUI';
 
+export const dynamic = 'force-dynamic';
+
 export default async function MemberDashboard() {
   const session = await auth();
 

@@ -21,9 +21,9 @@ export default function CheckoutSuccessPage() {
           <CheckCircle2 className="w-12 h-12" />
         </motion.div>
 
-        <h1 className="text-4xl font-black mb-4 uppercase tracking-tighter">You're in the <span className="text-primary italic">Rhythm!</span></h1>
+        <h1 className="text-4xl font-black mb-4 uppercase tracking-tighter">You&apos;re in the <span className="text-primary italic">Rhythm!</span></h1>
         <p className="text-muted text-lg mb-10">
-          Your payment was successful. We've sent a confirmation email to your inbox.
+          Your payment was successful. We&apos;ve sent a confirmation email to your inbox.
         </p>
 
         <div className="space-y-4">
@@ -43,7 +43,7 @@ export default function CheckoutSuccessPage() {
         </div>
 
         <p className="mt-12 text-xs text-muted uppercase tracking-widest font-bold opacity-50">
-          Let's Dance • AfroDanz 2026
+          Let&apos;s Dance • AfroDanz 2026
         </p>
       </motion.div>
     </div>

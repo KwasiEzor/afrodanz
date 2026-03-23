@@ -10,7 +10,7 @@ export default function ContactPage() {
           Get in <span className="text-primary italic">Touch</span>
         </h1>
         <p className="text-xl text-muted max-w-2xl mx-auto font-light">
-          Have questions about our classes, memberships, or workshops? We're here to help you find your rhythm.
+          Have questions about our classes, memberships, or workshops? We&apos;re here to help you find your rhythm.
         </p>
       </header>
 

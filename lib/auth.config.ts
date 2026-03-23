@@ -19,12 +19,14 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
-      const isDashboard = nextUrl.pathname.startsWith('/dashboard')
-      const isAdmin = nextUrl.pathname.startsWith('/admin')
+      const isDashboard = nextUrl.pathname.startsWith("/dashboard")
+      const isAdmin = nextUrl.pathname.startsWith("/admin")
 
-      if (isDashboard || isAdmin) {
-        if (isLoggedIn) return true
-        return false // Redirect to login
+      if (isAdmin) {
+        return auth?.user?.role === "ADMIN"
+      }
+      if (isDashboard) {
+        return isLoggedIn
       }
       return true
     },

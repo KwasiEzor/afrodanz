@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createEvent } from './events';
 import { auth } from '@/lib/auth';
-import prisma from '@/lib/prisma';
 
 describe('createEvent Server Action', () => {
   beforeEach(() => {
@@ -9,7 +8,9 @@ describe('createEvent Server Action', () => {
   });
 
   it('should fail if user is not an admin', async () => {
-    (auth as any).mockResolvedValue({ user: { role: 'MEMBER' } });
+    vi.mocked(auth).mockResolvedValue({
+      user: { role: 'MEMBER' },
+    } as Awaited<ReturnType<typeof auth>>);
     
     const formData = new FormData();
     formData.append('title', 'Test Event');
@@ -18,7 +19,9 @@ describe('createEvent Server Action', () => {
   });
 
   it('should fail if price is negative', async () => {
-    (auth as any).mockResolvedValue({ user: { role: 'ADMIN' } });
+    vi.mocked(auth).mockResolvedValue({
+      user: { role: 'ADMIN' },
+    } as Awaited<ReturnType<typeof auth>>);
     
     const formData = new FormData();
     formData.append('title', 'Test Event');
@@ -34,7 +37,9 @@ describe('createEvent Server Action', () => {
   });
 
   it('should fail if capacity is negative or zero', async () => {
-    (auth as any).mockResolvedValue({ user: { role: 'ADMIN' } });
+    vi.mocked(auth).mockResolvedValue({
+      user: { role: 'ADMIN' },
+    } as Awaited<ReturnType<typeof auth>>);
     
     const formData = new FormData();
     formData.append('title', 'Test Event');

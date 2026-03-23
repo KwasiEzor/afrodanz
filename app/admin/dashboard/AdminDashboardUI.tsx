@@ -2,24 +2,53 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Calendar, 
-  Euro, 
-  Plus, 
-  Search,
-  MoreVertical,
-  ArrowUpRight,
+import {
+  LayoutDashboard,
+  Users,
+  Calendar,
+  Euro,
+  Plus,
   Edit,
   Trash,
   UserCheck,
   X,
-  ExternalLink
 } from 'lucide-react';
-import { CreateEventForm } from '@/app/components/admin/CreateEventForm';
+import {
+  CreateEventForm,
+  type EditableEventFields,
+} from '@/app/components/admin/CreateEventForm';
 import { deleteEvent } from '@/app/actions/events';
 import Image from 'next/image';
+import type { BookingStatus } from '@prisma/client';
+
+type AdminUserPreview = {
+  name: string | null;
+  email: string | null;
+  image: string | null;
+};
+
+type RecentBookingRow = {
+  id: string;
+  status: BookingStatus;
+  createdAt: Date;
+  user: Pick<AdminUserPreview, 'name' | 'email'>;
+  event: { title: string; price: number };
+};
+
+type AdminEventRow = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  date: Date;
+  category: string;
+  location: string;
+  price: number;
+  capacity: number;
+  image: string | null;
+  bookings: Array<{ id: string; createdAt: Date; user: AdminUserPreview }>;
+  _count: { bookings: number };
+};
 
 interface AdminDashboardUIProps {
   stats: {
@@ -27,14 +56,14 @@ interface AdminDashboardUIProps {
     revenue: number;
     activeEvents: number;
   };
-  recentBookings: any[];
-  allEvents: any[];
+  recentBookings: RecentBookingRow[];
+  allEvents: AdminEventRow[];
 }
 
 export default function AdminDashboardUI({ stats, recentBookings, allEvents }: AdminDashboardUIProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<any>(null);
-  const [viewingAttendees, setViewingAttendees] = useState<any>(null);
+  const [editingEvent, setEditingEvent] = useState<EditableEventFields | null>(null);
+  const [viewingAttendees, setViewingAttendees] = useState<AdminEventRow | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
 
   const handleDeleteEvent = async (id: string) => {
@@ -91,7 +120,7 @@ export default function AdminDashboardUI({ stats, recentBookings, allEvents }: A
                   {viewingAttendees.bookings.length === 0 ? (
                     <div className="text-center py-12 text-muted italic">No dancers have booked this event yet.</div>
                   ) : (
-                    viewingAttendees.bookings.map((booking: any) => (
+                    viewingAttendees.bookings.map((booking) => (
                       <div key={booking.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
                         <div className="flex items-center gap-4">
                           {booking.user.image ? (
@@ -161,7 +190,7 @@ export default function AdminDashboardUI({ stats, recentBookings, allEvents }: A
             <h1 className="text-3xl font-black uppercase tracking-tight">
               Admin <span className="text-primary italic">{activeTab === 'overview' ? 'Overview' : activeTab === 'events' ? 'Events' : 'Bookings'}</span>
             </h1>
-            <p className="text-muted">Tracking your studio's heartbeat.</p>
+            <p className="text-muted">Tracking your studio&apos;s heartbeat.</p>
           </div>
           <motion.button 
             onClick={() => setShowCreateModal(true)}
@@ -214,7 +243,7 @@ export default function AdminDashboardUI({ stats, recentBookings, allEvents }: A
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {recentBookings.map((booking, i) => (
+                    {recentBookings.map((booking) => (
                       <tr key={booking.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-all">
                         <td className="px-8 py-6">
                           <div className="font-bold">{booking.user.name || 'Anonymous'}</div>

@@ -35,6 +35,7 @@ const prismaMock = {
     update: vi.fn(),
     upsert: vi.fn(),
     findFirst: vi.fn(),
+    findUnique: vi.fn(),
     findMany: vi.fn(),
     count: vi.fn(),
   },
@@ -62,6 +63,8 @@ vi.mock('next/cache', () => ({
 // Mock Next Headers
 vi.mock('next/headers', () => ({
   headers: vi.fn(async () => ({
-    get: vi.fn((key) => 'mock-value'),
+    get: vi.fn((name: string) =>
+      name === 'Stripe-Signature' ? 'test_sig' : null
+    ),
   })),
 }))

@@ -3,6 +3,8 @@ import { Heart, Globe, Users, Star } from 'lucide-react';
 import Link from 'next/link';
 import prisma from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AboutPage() {
   const instructors = await prisma.user.findMany({
     where: { role: 'ADMIN' },

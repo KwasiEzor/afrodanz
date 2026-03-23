@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
@@ -19,24 +19,35 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import type { Session } from 'next-auth';
+import type { Booking, Event } from '@prisma/client';
+
+type BookingWithEvent = Booking & { event: Event };
 
 interface DashboardUIProps {
-  user: any;
-  bookings: any[];
+  user: Session['user'];
+  bookings: BookingWithEvent[];
+}
+
+function bannerFromSearchParams(searchParams: URLSearchParams): string | null {
+  if (searchParams.get('booking_success')) {
+    return 'Booking successful! We have secured your spot.';
+  }
+  if (searchParams.get('subscription_success')) {
+    return 'Welcome to the tribe! Your subscription is now active.';
+  }
+  return null;
 }
 
 export default function DashboardUI({ user, bookings }: DashboardUIProps) {
   const [activeTab, setActiveTab] = useState('overview');
-  const [notification, setNotification] = useState<string | null>(null);
   const searchParams = useSearchParams();
-
-  useEffect(() => {
-    if (searchParams.get('booking_success')) {
-      setNotification('Booking successful! We have secured your spot.');
-    } else if (searchParams.get('subscription_success')) {
-      setNotification('Welcome to the tribe! Your subscription is now active.');
-    }
-  }, [searchParams]);
+  const urlBanner = useMemo(
+    () => bannerFromSearchParams(searchParams),
+    [searchParams]
+  );
+  const [dismissedBanner, setDismissedBanner] = useState(false);
+  const notification = dismissedBanner ? null : urlBanner;
 
   const stats = [
     { label: 'Next Class', value: bookings[0]?.event.title || 'No classes yet', icon: Calendar },
@@ -60,7 +71,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
           >
             <CheckCircle2 className="w-8 h-8 shrink-0" />
             <p className="font-bold">{notification}</p>
-            <button onClick={() => setNotification(null)} className="p-2 hover:bg-white/10 rounded-full transition-all">
+            <button onClick={() => setDismissedBanner(true)} className="p-2 hover:bg-white/10 rounded-full transition-all">
               <X className="w-5 h-5" />
             </button>
           </motion.div>
@@ -308,11 +319,11 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                     <div className="grid gap-4">
                       <div className="space-y-1">
                         <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-1">Display Name</label>
-                        <input disabled value={user.name} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-xl text-muted cursor-not-allowed" />
+                        <input disabled value={user.name ?? ''} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-xl text-muted cursor-not-allowed" />
                       </div>
                       <div className="space-y-1">
                         <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-1">Email Address</label>
-                        <input disabled value={user.email} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-xl text-muted cursor-not-allowed" />
+                        <input disabled value={user.email ?? ''} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-xl text-muted cursor-not-allowed" />
                       </div>
                     </div>
                   </div>

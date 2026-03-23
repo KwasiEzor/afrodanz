@@ -20,40 +20,48 @@ describe('bookEvent Server Action', () => {
   });
 
   it('should fail if event is fully booked including pending bookings', async () => {
-    (auth as any).mockResolvedValue({ user: { id: 'user_1', email: 'test@test.com' } });
-    
-    // Mock event with capacity 10 and 9 PAID bookings
-    (prisma.event.findUnique as any).mockResolvedValue({
+    vi.mocked(auth).mockResolvedValue({
+      user: { id: 'user_1', email: 'test@test.com' },
+    } as Awaited<ReturnType<typeof auth>>);
+
+    vi.mocked(prisma.event.findUnique).mockResolvedValue({
       id: 'event_1',
       title: 'Workshop',
       capacity: 10,
       price: 2500,
-      _count: { bookings: 9 }
-    });
+      _count: { bookings: 9 },
+    } as Awaited<ReturnType<typeof prisma.event.findUnique>>);
 
-    // Mock 1 PENDING booking that is recent (not expired)
-    (prisma.booking.count as any).mockResolvedValue(1);
+    vi.mocked(prisma.booking.count).mockResolvedValue(1);
 
     await expect(bookEvent('event_1')).rejects.toThrow('This event is fully booked');
   });
 
   it('should allow booking if pending bookings are expired', async () => {
-     (auth as any).mockResolvedValue({ user: { id: 'user_1', email: 'test@test.com' } });
-    
-    (prisma.event.findUnique as any).mockResolvedValue({
+    vi.mocked(auth).mockResolvedValue({
+      user: { id: 'user_1', email: 'test@test.com' },
+    } as Awaited<ReturnType<typeof auth>>);
+
+    vi.mocked(prisma.event.findUnique).mockResolvedValue({
       id: 'event_1',
       title: 'Workshop',
+      slug: 'workshop',
       capacity: 10,
       price: 2500,
-      _count: { bookings: 9 }
-    });
+      category: 'Workshop',
+      location: 'Studio',
+      _count: { bookings: 9 },
+    } as Awaited<ReturnType<typeof prisma.event.findUnique>>);
 
-    // Mock 0 ACTIVE (PAID or recent PENDING) bookings besides the 9 paid
-    (prisma.booking.count as any).mockResolvedValue(0);
-    (prisma.booking.findFirst as any).mockResolvedValue(null);
-    (prisma.booking.upsert as any).mockResolvedValue({ id: 'booking_1' });
-    
-    (stripe.checkout.sessions.create as any).mockResolvedValue({ url: 'http://stripe.com' });
+    vi.mocked(prisma.booking.count).mockResolvedValue(0);
+    vi.mocked(prisma.booking.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.booking.create).mockResolvedValue({
+      id: 'booking_1',
+    } as Awaited<ReturnType<typeof prisma.booking.create>>);
+
+    vi.mocked(stripe.checkout.sessions.create).mockResolvedValue({
+      url: 'http://stripe.com',
+    } as Awaited<ReturnType<typeof stripe.checkout.sessions.create>>);
 
     const result = await bookEvent('event_1');
     expect(result.url).toBe('http://stripe.com');

@@ -61,9 +61,10 @@ export function Pricing() {
       if (result.url) {
         window.location.href = result.url;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      if (error.message.includes('logged in')) {
+      const message = error instanceof Error ? error.message : '';
+      if (message.includes('logged in')) {
         router.push('/login');
       } else {
         alert('Failed to start subscription. Please try again.');
@@ -86,7 +87,7 @@ export function Pricing() {
             Choose Your <span className="text-primary italic">Rhythm</span>
           </motion.h2>
           <p className="text-muted text-lg max-w-2xl mx-auto">
-            Flexible membership plans designed to fit your dance journey, whether you're a beginner or a pro.
+            Flexible membership plans designed to fit your dance journey, whether you&apos;re a beginner or a pro.
           </p>
         </div>
 

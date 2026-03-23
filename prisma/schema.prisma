@@ -28,36 +28,36 @@ model User {
   emailVerified DateTime?
   image         String?
   role          Role      @default(MEMBER)
-  
+
   // Auth.js / NextAuth
-  accounts      Account[]
-  sessions      Session[]
+  accounts Account[]
+  sessions Session[]
 
   // Subscription / Payments
-  stripeCustomerId String?   @unique
-  stripeSubscriptionId String? @unique
-  subscriptionStatus SubscriptionStatus?
-  
+  stripeCustomerId     String?             @unique
+  stripeSubscriptionId String?             @unique
+  subscriptionStatus   SubscriptionStatus?
+
   // App Logic
-  bookings      Booking[]
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  bookings Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -87,15 +87,15 @@ model Event {
   description String?
   date        DateTime
   location    String
-  price       Int      // Price in cents
+  price       Int // Price in cents
   capacity    Int
-  category    String   // Workshop, Class, Intensive
+  category    String // Workshop, Class, Intensive
   image       String?
-  
-  bookings    Booking[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  bookings Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum BookingStatus {
@@ -105,14 +105,14 @@ enum BookingStatus {
 }
 
 model Booking {
-  id        String   @id @default(cuid())
-  userId    String
-  eventId   String
-  status    BookingStatus @default(PENDING)
-  
-  user      User     @relation(fields: [userId], references: [id])
-  event     Event    @relation(fields: [eventId], references: [id])
-  
+  id      String        @id @default(cuid())
+  userId  String
+  eventId String
+  status  BookingStatus @default(PENDING)
+
+  user  User  @relation(fields: [userId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+
   expiresAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 }
