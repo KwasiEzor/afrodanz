@@ -2,92 +2,121 @@
 
 import { useState } from 'react';
 import { Send, CheckCircle2 } from 'lucide-react';
-import { sendContactMessage } from '@/app/actions/contact';
 import { motion, AnimatePresence } from 'framer-motion';
+import { sendContactMessage } from '@/app/actions/contact';
 
 export function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSent, setIsSent] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setIsSubmitting(true);
-    
-    const formData = new FormData(e.currentTarget);
+
+    const formData = new FormData(event.currentTarget);
     const result = await sendContactMessage(formData);
-    
+
     if (result.success) {
       setIsSent(true);
-      // Reset after 5 seconds
       setTimeout(() => setIsSent(false), 5000);
-      (e.target as HTMLFormElement).reset();
+      event.currentTarget.reset();
     }
+
     setIsSubmitting(false);
   };
 
   return (
-    <div className="bg-slate-950 text-white p-10 md:p-16 rounded-[4rem] shadow-2xl relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-[100px] -mr-32 -mt-32" />
-      
-      <h2 className="text-3xl font-black mb-8 uppercase tracking-tight relative z-10">
-        Send a <span className="text-accent italic">Message</span>
-      </h2>
-      
+    <div className="site-panel relative overflow-hidden rounded-[2.8rem] p-8 md:p-12">
+      <div className="absolute -right-10 top-0 h-52 w-52 rounded-full bg-secondary/18 blur-3xl" />
+      <div className="absolute -bottom-10 left-0 h-48 w-48 rounded-full bg-primary/14 blur-3xl" />
+
+      <div className="relative">
+        <p className="site-kicker mb-4">Direct line</p>
+        <h2 className="site-title text-4xl font-black uppercase text-white">
+          Send a <span className="site-highlight">Message</span>
+        </h2>
+      </div>
+
       <AnimatePresence mode="wait">
         {isSent ? (
-          <motion.div 
+          <motion.div
             key="success"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="flex flex-col items-center justify-center py-12 space-y-4 relative z-10"
+            className="relative flex flex-col items-center justify-center py-14 text-center"
           >
-            <CheckCircle2 className="w-20 h-20 text-green-500" />
-            <h3 className="text-2xl font-black uppercase">Message Sent!</h3>
-            <p className="text-slate-400 text-center">We&apos;ll get back to you faster than an Amapiano beat drop.</p>
+            <CheckCircle2 className="h-20 w-20 text-emerald-400" />
+            <h3 className="mt-5 text-2xl font-black uppercase tracking-[0.2em] text-white">
+              Message Sent
+            </h3>
+            <p className="mt-3 max-w-md text-slate-400">
+              We&apos;ll reply with the next steps, class info, or membership guidance as soon as possible.
+            </p>
           </motion.div>
         ) : (
-          <motion.form 
+          <motion.form
             key="form"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onSubmit={handleSubmit} 
-            className="space-y-6 relative z-10"
+            onSubmit={handleSubmit}
+            className="relative mt-10 space-y-6"
           >
-            <div className="grid sm:grid-cols-2 gap-6">
+            <div className="grid gap-6 sm:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-slate-400">First Name</label>
-                <input required name="firstName" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:ring-2 ring-primary/50 outline-none transition-all" />
+                <label className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">
+                  First Name
+                </label>
+                <input
+                  required
+                  name="firstName"
+                  className="w-full rounded-[1.5rem] border border-white/10 bg-white/5 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-accent/40"
+                />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-slate-400">Last Name</label>
-                <input required name="lastName" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:ring-2 ring-primary/50 outline-none transition-all" />
+                <label className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">
+                  Last Name
+                </label>
+                <input
+                  required
+                  name="lastName"
+                  className="w-full rounded-[1.5rem] border border-white/10 bg-white/5 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-accent/40"
+                />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-slate-400">Email Address</label>
-              <input required name="email" type="email" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:ring-2 ring-primary/50 outline-none transition-all" />
+              <label className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">
+                Email Address
+              </label>
+              <input
+                required
+                name="email"
+                type="email"
+                className="w-full rounded-[1.5rem] border border-white/10 bg-white/5 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-accent/40"
+              />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-slate-400">Message</label>
-              <textarea required name="message" rows={5} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:ring-2 ring-primary/50 outline-none transition-all resize-none" />
+              <label className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">
+                Message
+              </label>
+              <textarea
+                required
+                name="message"
+                rows={6}
+                className="w-full resize-none rounded-[1.75rem] border border-white/10 bg-white/5 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-accent/40"
+              />
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={isSubmitting}
-              className="w-full py-5 bg-white text-black font-black rounded-full shadow-2xl hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-3 text-lg disabled:opacity-50"
+              className="site-primary-button inline-flex w-full items-center justify-center gap-3 rounded-full px-6 py-4 text-sm font-black uppercase tracking-[0.24em] text-white disabled:opacity-50"
             >
-              {isSubmitting ? (
-                <span className="animate-pulse flex items-center gap-2">
-                  Sending...
-                </span>
-              ) : (
-                <>Send Message <Send className="w-5 h-5" /></>
-              )}
+              {isSubmitting ? 'Sending' : 'Send Message'}
+              {!isSubmitting && <Send className="h-4 w-4" />}
             </button>
           </motion.form>
         )}

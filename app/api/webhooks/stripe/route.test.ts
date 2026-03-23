@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { POST } from './route';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import prisma from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
+import { POST } from './route';
 
 vi.mock('@/lib/stripe', () => ({
   stripe: {
@@ -16,28 +16,32 @@ describe('Stripe Webhook', () => {
     vi.clearAllMocks();
   });
 
-  it('should update booking to PAID on checkout.session.completed', async () => {
-    const mockSession = {
+  it('should update a pending booking to PAID on checkout.session.completed', async () => {
+    const mockEvent = {
       type: 'checkout.session.completed',
       data: {
         object: {
+          id: 'cs_live',
+          mode: 'payment',
+          client_reference_id: 'booking_1',
           metadata: {
-            userId: 'user_1',
-            eventId: 'event_1',
             bookingId: 'booking_1',
           },
           payment_status: 'paid',
+          payment_intent: 'pi_live',
           amount_total: 2500,
         },
       },
     };
 
     vi.mocked(stripe.webhooks.constructEvent).mockReturnValue(
-      mockSession as unknown as ReturnType<typeof stripe.webhooks.constructEvent>
+      mockEvent as unknown as ReturnType<typeof stripe.webhooks.constructEvent>
     );
 
     vi.mocked(prisma.booking.findUnique).mockResolvedValue({
       id: 'booking_1',
+      status: 'PENDING',
+      stripeCheckoutSessionId: 'cs_live',
       event: { price: 2500 },
     } as unknown as Awaited<ReturnType<typeof prisma.booking.findUnique>>);
 
@@ -48,13 +52,100 @@ describe('Stripe Webhook', () => {
     });
 
     const response = await POST(req);
-    expect(response.status).toBe(200);
 
+    expect(response.status).toBe(200);
     expect(prisma.booking.update).toHaveBeenCalledWith({
       where: { id: 'booking_1' },
       data: {
         status: 'PAID',
         expiresAt: null,
+        paidAt: expect.any(Date),
+        stripeCheckoutSessionId: 'cs_live',
+        stripePaymentIntentId: 'pi_live',
+      },
+    });
+  });
+
+  it('should ignore a completed checkout for a stale session id', async () => {
+    const mockEvent = {
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_stale',
+          mode: 'payment',
+          client_reference_id: 'booking_1',
+          metadata: {
+            bookingId: 'booking_1',
+          },
+          payment_status: 'paid',
+          amount_total: 2500,
+        },
+      },
+    };
+
+    vi.mocked(stripe.webhooks.constructEvent).mockReturnValue(
+      mockEvent as unknown as ReturnType<typeof stripe.webhooks.constructEvent>
+    );
+
+    vi.mocked(prisma.booking.findUnique).mockResolvedValue({
+      id: 'booking_1',
+      status: 'PENDING',
+      stripeCheckoutSessionId: 'cs_current',
+      event: { price: 2500 },
+    } as unknown as Awaited<ReturnType<typeof prisma.booking.findUnique>>);
+
+    const req = new Request('http://localhost', {
+      method: 'POST',
+      headers: { 'Stripe-Signature': 'sig' },
+      body: JSON.stringify({}),
+    });
+
+    const response = await POST(req);
+
+    expect(response.status).toBe(200);
+    expect(prisma.booking.update).not.toHaveBeenCalled();
+  });
+
+  it('should cancel an expired pending checkout session hold', async () => {
+    const mockEvent = {
+      type: 'checkout.session.expired',
+      data: {
+        object: {
+          id: 'cs_expired',
+          client_reference_id: 'booking_1',
+          metadata: {
+            bookingId: 'booking_1',
+          },
+        },
+      },
+    };
+
+    vi.mocked(stripe.webhooks.constructEvent).mockReturnValue(
+      mockEvent as unknown as ReturnType<typeof stripe.webhooks.constructEvent>
+    );
+
+    vi.mocked(prisma.booking.findUnique).mockResolvedValue({
+      id: 'booking_1',
+      status: 'PENDING',
+      stripeCheckoutSessionId: 'cs_expired',
+    } as unknown as Awaited<ReturnType<typeof prisma.booking.findUnique>>);
+
+    const req = new Request('http://localhost', {
+      method: 'POST',
+      headers: { 'Stripe-Signature': 'sig' },
+      body: JSON.stringify({}),
+    });
+
+    const response = await POST(req);
+
+    expect(response.status).toBe(200);
+    expect(prisma.booking.update).toHaveBeenCalledWith({
+      where: { id: 'booking_1' },
+      data: {
+        status: 'CANCELED',
+        expiresAt: null,
+        stripeCheckoutSessionId: null,
+        stripePaymentIntentId: null,
       },
     });
   });

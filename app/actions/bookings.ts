@@ -1,8 +1,13 @@
 'use server';
+
+import type Stripe from 'stripe';
+import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
-import { revalidatePath } from 'next/cache';
 import { stripe } from '@/lib/stripe';
+import { getRequiredAppUrl } from '@/lib/app-url';
+
+const BOOKING_HOLD_MS = 15 * 60 * 1000;
 
 type PaidCheckoutPayload = {
   kind: 'paid';
@@ -14,11 +19,25 @@ type PaidCheckoutPayload = {
   price: number;
   userId: string;
   eventId: string;
+  expiresAt: Date;
+  reusableCheckoutSessionId: string | null;
 };
 
 type FreeBookingPayload = {
   kind: 'free';
 };
+
+function nextBookingExpiry(from: Date) {
+  return new Date(from.getTime() + BOOKING_HOLD_MS);
+}
+
+function getPaymentIntentId(session: Stripe.Checkout.Session) {
+  if (typeof session.payment_intent === 'string') {
+    return session.payment_intent;
+  }
+
+  return session.payment_intent?.id ?? null;
+}
 
 export async function bookEvent(eventId: string) {
   const session = await auth();
@@ -28,64 +47,87 @@ export async function bookEvent(eventId: string) {
   }
 
   const userId = session.user.id;
+  const now = new Date();
 
   const checkoutPayload = await prisma.$transaction(async (tx) => {
-    const event = await tx.event.findUnique({
-      where: { id: eventId },
-      include: {
-        _count: {
-          select: {
-            bookings: {
-              where: { status: 'PAID' },
-            },
+    const [event, existingBooking] = await Promise.all([
+      tx.event.findUnique({
+        where: { id: eventId },
+      }),
+      tx.booking.findUnique({
+        where: {
+          userId_eventId: {
+            userId,
+            eventId,
           },
         },
-      },
-    });
+      }),
+    ]);
 
-    if (!event) throw new Error('Event not found');
-
-    const activePendingCount = await tx.booking.count({
-      where: {
-        eventId,
-        status: 'PENDING',
-        expiresAt: {
-          gt: new Date(),
-        },
-        NOT: {
-          userId,
-        },
-      },
-    });
-
-    const totalActiveBookings = event._count.bookings + activePendingCount;
-
-    if (totalActiveBookings >= event.capacity) {
-      throw new Error('This event is fully booked');
+    if (!event) {
+      throw new Error('Event not found');
     }
 
-    const existingPaidBooking = await tx.booking.findFirst({
-      where: {
-        userId,
-        eventId,
-        status: 'PAID',
-      },
-    });
-
-    if (existingPaidBooking) {
+    if (existingBooking?.status === 'PAID') {
       throw new Error('You have already booked this event');
     }
 
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-
-    const existingPending = await tx.booking.findFirst({
-      where: { userId, eventId, status: 'PENDING' },
+    const activeBookingsCount = await tx.booking.count({
+      where: {
+        eventId,
+        OR: [
+          { status: 'PAID' },
+          {
+            status: 'PENDING',
+            expiresAt: {
+              gt: now,
+            },
+          },
+        ],
+        ...(existingBooking ? { NOT: { id: existingBooking.id } } : {}),
+      },
     });
 
-    const booking = existingPending
+    if (activeBookingsCount >= event.capacity) {
+      throw new Error('This event is fully booked');
+    }
+
+    if (event.price <= 0) {
+      if (existingBooking) {
+        await tx.booking.update({
+          where: { id: existingBooking.id },
+          data: {
+            status: 'PAID',
+            expiresAt: null,
+            stripeCheckoutSessionId: null,
+            stripePaymentIntentId: null,
+            paidAt: now,
+          },
+        });
+      } else {
+        await tx.booking.create({
+          data: {
+            userId,
+            eventId,
+            status: 'PAID',
+            paidAt: now,
+          },
+        });
+      }
+
+      return { kind: 'free' as const } satisfies FreeBookingPayload;
+    }
+
+    const expiresAt = nextBookingExpiry(now);
+
+    const booking = existingBooking
       ? await tx.booking.update({
-          where: { id: existingPending.id },
-          data: { expiresAt },
+          where: { id: existingBooking.id },
+          data: {
+            status: 'PENDING',
+            expiresAt,
+            paidAt: null,
+          },
         })
       : await tx.booking.create({
           data: {
@@ -96,32 +138,53 @@ export async function bookEvent(eventId: string) {
           },
         });
 
-    if (event.price > 0) {
-      return {
-        kind: 'paid' as const,
-        bookingId: booking.id,
-        slug: event.slug,
-        title: event.title,
-        category: event.category,
-        location: event.location,
-        price: event.price,
-        userId,
-        eventId,
-      } satisfies PaidCheckoutPayload;
-    }
+    const reusableCheckoutSessionId =
+      existingBooking?.status === 'PENDING' &&
+      existingBooking.expiresAt != null &&
+      existingBooking.expiresAt > now
+        ? existingBooking.stripeCheckoutSessionId
+        : null;
 
-    await tx.booking.update({
-      where: { id: booking.id },
-      data: {
-        status: 'PAID',
-        expiresAt: null,
-      },
-    });
-
-    return { kind: 'free' as const } satisfies FreeBookingPayload;
+    return {
+      kind: 'paid' as const,
+      bookingId: booking.id,
+      slug: event.slug,
+      title: event.title,
+      category: event.category,
+      location: event.location,
+      price: event.price,
+      userId,
+      eventId,
+      expiresAt,
+      reusableCheckoutSessionId,
+    } satisfies PaidCheckoutPayload;
   });
 
   if (checkoutPayload.kind === 'paid') {
+    const appUrl = getRequiredAppUrl();
+
+    if (checkoutPayload.reusableCheckoutSessionId) {
+      try {
+        const existingSession = await stripe.checkout.sessions.retrieve(
+          checkoutPayload.reusableCheckoutSessionId
+        );
+
+        if (existingSession.status === 'open' && existingSession.url) {
+          return { url: existingSession.url };
+        }
+
+        if (existingSession.status === 'open') {
+          await stripe.checkout.sessions.expire(existingSession.id);
+        }
+      } catch (error) {
+        console.error('Stripe checkout session reuse failed', {
+          bookingId: checkoutPayload.bookingId,
+          sessionId: checkoutPayload.reusableCheckoutSessionId,
+          error,
+        });
+      }
+    }
+
     const checkoutSession = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -138,14 +201,28 @@ export async function bookEvent(eventId: string) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?booking_success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/events/${checkoutPayload.slug}?booking_canceled=true`,
+      expires_at: Math.floor(checkoutPayload.expiresAt.getTime() / 1000),
+      success_url: `${appUrl}/dashboard?booking_success=true`,
+      cancel_url: `${appUrl}/events/${checkoutPayload.slug}?booking_canceled=true`,
+      client_reference_id: checkoutPayload.bookingId,
       metadata: {
         userId: checkoutPayload.userId,
         eventId: checkoutPayload.eventId,
         bookingId: checkoutPayload.bookingId,
       },
     });
+
+    await prisma.booking.update({
+      where: { id: checkoutPayload.bookingId },
+      data: {
+        stripeCheckoutSessionId: checkoutSession.id,
+        stripePaymentIntentId: getPaymentIntentId(checkoutSession),
+      },
+    });
+
+    if (!checkoutSession.url) {
+      throw new Error('Failed to create checkout session');
+    }
 
     return { url: checkoutSession.url };
   }
@@ -175,6 +252,8 @@ export async function createSubscriptionSession(planName: string) {
     throw new Error('Invalid plan selected');
   }
 
+  const appUrl = getRequiredAppUrl();
+
   const checkoutSession = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     line_items: [
@@ -194,8 +273,8 @@ export async function createSubscriptionSession(planName: string) {
       },
     ],
     mode: 'subscription',
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?subscription_success=true`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/#pricing`,
+    success_url: `${appUrl}/dashboard?subscription_success=true`,
+    cancel_url: `${appUrl}/#pricing`,
     customer_email: userEmail ?? undefined,
     metadata: {
       userId,

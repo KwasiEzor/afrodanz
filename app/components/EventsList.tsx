@@ -1,9 +1,10 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, Search, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Calendar, MapPin, Search, ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
+import { useDeferredValue, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface Event {
   id: string;
@@ -25,6 +26,9 @@ interface EventsListProps {
 export function EventsList({ initialEvents, totalPages, currentPage }: EventsListProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+  const deferredSearch = useDeferredValue(search);
+
   const handleFilterChange = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (value) {
@@ -32,7 +36,7 @@ export function EventsList({ initialEvents, totalPages, currentPage }: EventsLis
     } else {
       params.delete(key);
     }
-    params.set('page', '1'); // Reset to first page
+    params.set('page', '1');
     router.push(`/events?${params.toString()}`);
   };
 
@@ -42,30 +46,44 @@ export function EventsList({ initialEvents, totalPages, currentPage }: EventsLis
     router.push(`/events?${params.toString()}`);
   };
 
+  useEffect(() => {
+    const currentSearch = searchParams.get('search') || '';
+    if (deferredSearch === currentSearch) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (deferredSearch) {
+        params.set('search', deferredSearch);
+      } else {
+        params.delete('search');
+      }
+      params.set('page', '1');
+      router.push(`/events?${params.toString()}`);
+    }, 250);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [deferredSearch, router, searchParams]);
+
   return (
     <div className="space-y-12">
-      {/* Search and Filters */}
-      <div className="grid md:grid-cols-3 gap-6 mb-12">
-        <div className="relative col-span-2">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
-          <input 
+      <div className="site-panel grid gap-6 rounded-[2.4rem] p-6 md:grid-cols-[1.4fr_0.7fr] md:p-8">
+        <div className="relative">
+          <Search className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
+          <input
             type="text"
-            placeholder="Search workshops..."
-            defaultValue={searchParams.get('search') || ''}
-            onChange={(e) => {
-              // Debounce search
-              const value = e.target.value;
-              const timeoutId = setTimeout(() => handleFilterChange('search', value), 500);
-              return () => clearTimeout(timeoutId);
-            }}
-            className="w-full pl-12 pr-4 py-4 bg-white dark:bg-slate-900 border-none rounded-2xl shadow-sm focus:ring-2 ring-primary/20"
+            placeholder="Search workshops, instructors, or vibes..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className="w-full rounded-full border border-white/8 bg-white/5 py-4 pl-14 pr-5 text-sm text-white outline-none placeholder:text-slate-500 focus:border-accent/40"
           />
         </div>
-        
-        <select 
+
+        <select
           defaultValue={searchParams.get('category') || ''}
-          onChange={(e) => handleFilterChange('category', e.target.value)}
-          className="px-6 py-4 bg-white dark:bg-slate-900 border-none rounded-2xl shadow-sm font-bold appearance-none cursor-pointer focus:ring-2 ring-primary/20"
+          onChange={(event) => handleFilterChange('category', event.target.value)}
+          className="rounded-full border border-white/8 bg-white/5 px-6 py-4 text-sm font-black uppercase tracking-[0.2em] text-white outline-none"
         >
           <option value="">All Categories</option>
           <option value="Workshop">Workshop</option>
@@ -74,85 +92,95 @@ export function EventsList({ initialEvents, totalPages, currentPage }: EventsLis
         </select>
       </div>
 
-      {/* Events Grid */}
-      <div className="grid md:grid-cols-3 gap-8">
+      <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
         <AnimatePresence mode="popLayout">
           {initialEvents.map((event, index) => (
-            <motion.div
+            <motion.article
               key={event.id}
               layout
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ delay: index * 0.05 }}
-              className="group bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 hover:border-primary/20 transition-all hover:shadow-2xl shadow-primary/5"
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ delay: index * 0.04 }}
+              className="site-panel group overflow-hidden rounded-[2.3rem]"
             >
-              <div className="mb-6 flex justify-between items-start">
-                <span className="px-4 py-1 bg-primary/10 text-primary rounded-full text-xs font-black uppercase tracking-widest">
-                  {event.category}
-                </span>
-                <span className="text-xl font-black text-primary italic">€{event.price / 100}</span>
-              </div>
-              
-              <Link href={`/events/${event.slug}`} className="block mb-6">
-                <h3 className="text-2xl font-black uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-2 leading-none">
-                  {event.title}
-                </h3>
-              </Link>
-              
-              <div className="space-y-4 text-sm text-muted mb-8">
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-4 h-4 text-primary" />
-                  <span className="font-medium">{new Date(event.date).toLocaleDateString()}</span>
+              <div className="relative min-h-[17rem] overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(124,58,237,0.2),transparent_45%),linear-gradient(180deg,rgba(12,15,26,0.1),rgba(12,15,26,0.82))]" />
+                <div className="absolute inset-x-6 top-6 flex items-start justify-between gap-4">
+                  <span className="rounded-full border border-accent/22 bg-accent/10 px-4 py-2 text-[0.65rem] font-black uppercase tracking-[0.26em] text-accent">
+                    {event.category}
+                  </span>
+                  <span className="rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm font-black text-white backdrop-blur-sm">
+                    €{event.price / 100}
+                  </span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-4 h-4 text-primary" />
-                  <span className="font-medium">{event.location}</span>
+
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <Link href={`/events/${event.slug}`} className="block">
+                    <h2 className="site-title text-3xl font-black uppercase leading-none text-white transition-colors group-hover:text-accent">
+                      {event.title}
+                    </h2>
+                  </Link>
                 </div>
               </div>
 
-              <Link 
-                href={`/events/${event.slug}`}
-                className="w-full py-4 bg-slate-50 dark:bg-slate-800 text-foreground font-black rounded-2xl flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all text-sm uppercase tracking-widest"
-              >
-                View Details
-              </Link>
-            </motion.div>
+              <div className="p-6">
+                <div className="space-y-4 text-sm text-slate-400">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-4 w-4 text-secondary" />
+                    <span>{new Date(event.date).toLocaleDateString('en-GB')}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-4 w-4 text-secondary" />
+                    <span>{event.location}</span>
+                  </div>
+                </div>
+
+                <div className="neon-divider my-6" />
+
+                <Link
+                  href={`/events/${event.slug}`}
+                  className="site-outline-button inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
+                >
+                  View Details
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </motion.article>
           ))}
         </AnimatePresence>
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 pt-12">
-          <button 
+        <div className="flex flex-wrap items-center justify-center gap-4 pt-8">
+          <button
             disabled={currentPage <= 1}
             onClick={() => handlePageChange(currentPage - 1)}
-            className="p-3 bg-white dark:bg-slate-900 rounded-xl shadow-sm disabled:opacity-30 transition-all hover:bg-primary hover:text-white"
+            className="site-outline-button rounded-full p-3 text-white disabled:opacity-30"
           >
             <ChevronLeft />
           </button>
-          
+
           <div className="flex gap-2">
-            {[...Array(totalPages)].map((_, i) => (
+            {[...Array(totalPages)].map((_, index) => (
               <button
-                key={i + 1}
-                onClick={() => handlePageChange(i + 1)}
-                className={`w-12 h-12 rounded-xl font-black transition-all ${
-                  currentPage === i + 1 
-                    ? 'bg-primary text-white shadow-lg' 
-                    : 'bg-white dark:bg-slate-900 text-muted hover:bg-slate-50 dark:hover:bg-slate-800'
+                key={index + 1}
+                onClick={() => handlePageChange(index + 1)}
+                className={`h-11 w-11 rounded-full text-sm font-black ${
+                  currentPage === index + 1
+                    ? 'site-primary-button text-white'
+                    : 'site-outline-button text-slate-300'
                 }`}
               >
-                {i + 1}
+                {index + 1}
               </button>
             ))}
           </div>
 
-          <button 
+          <button
             disabled={currentPage >= totalPages}
             onClick={() => handlePageChange(currentPage + 1)}
-            className="p-3 bg-white dark:bg-slate-900 rounded-xl shadow-sm disabled:opacity-30 transition-all hover:bg-primary hover:text-white"
+            className="site-outline-button rounded-full p-3 text-white disabled:opacity-30"
           >
             <ChevronRight />
           </button>
@@ -160,8 +188,10 @@ export function EventsList({ initialEvents, totalPages, currentPage }: EventsLis
       )}
 
       {initialEvents.length === 0 && (
-        <div className="text-center py-24 bg-white dark:bg-slate-900 rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-800">
-          <p className="text-xl text-muted font-light">No workshops found matching your criteria.</p>
+        <div className="site-panel rounded-[2.6rem] px-8 py-20 text-center">
+          <p className="text-xl font-light text-slate-400">
+            No workshops found matching your current filters.
+          </p>
         </div>
       )}
     </div>

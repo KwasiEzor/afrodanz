@@ -1,12 +1,17 @@
 @import "../node_modules/tailwindcss/index.css";
 
 :root {
-  --background: #fafafa;
-  --foreground: #1a1a1a;
-  --primary: #c2410c; /* Terracotta */
-  --secondary: #166534; /* Deep Green */
-  --accent: #d97706; /* Gold/Amber */
-  --muted: #4b5563;
+  /* Fallback palette mirrors app/colors.json */
+  --background: #0d0b08;
+  --foreground: #fff8ee;
+  --primary: #956745;
+  --secondary: #ffbd3d;
+  --accent: #86b498;
+  --muted: #e4c897;
+  --panel: rgba(25, 22, 17, 0.86);
+  --panel-strong: rgba(13, 11, 8, 0.95);
+  --panel-soft: rgba(255, 248, 238, 0.04);
+  --panel-border: rgba(149, 103, 69, 0.32);
 }
 
 @theme inline {
@@ -16,28 +21,166 @@
   --color-secondary: var(--secondary);
   --color-accent: var(--accent);
   --color-muted: var(--muted);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-space-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a; /* Dark Navy/Slate */
-    --foreground: #f8fafc;
-  }
+* {
+  border-color: rgba(228, 200, 151, 0.16);
+}
+
+html {
+  background:
+    radial-gradient(circle at top left, rgba(149, 103, 69, 0.26), transparent 24rem),
+    radial-gradient(circle at top right, rgba(255, 189, 61, 0.12), transparent 22rem),
+    linear-gradient(180deg, #0d0b08 0%, #060301 100%);
 }
 
 body {
-  background: var(--background);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(149, 103, 69, 0.18), transparent 24rem),
+    radial-gradient(circle at 85% 12%, rgba(134, 180, 152, 0.1), transparent 20rem),
+    radial-gradient(circle at 50% 100%, rgba(255, 189, 61, 0.08), transparent 26rem),
+    var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-body), sans-serif;
   overflow-x: hidden;
 }
 
+main {
+  position: relative;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display), var(--font-body), sans-serif;
+}
+
+a,
+button,
+input,
+textarea,
+select {
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.display-type {
+  font-family: var(--font-display), var(--font-body), sans-serif;
+}
+
+.site-shell {
+  position: relative;
+}
+
+.site-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 5rem 5rem;
+  mask-image: linear-gradient(180deg, rgba(255, 255, 255, 0.45), transparent 90%);
+  opacity: 0.45;
+}
+
+.site-panel {
+  background: linear-gradient(180deg, rgba(25, 22, 17, 0.92), rgba(13, 11, 8, 0.94));
+  border: 1px solid rgba(149, 103, 69, 0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 22px 70px rgba(6, 3, 1, 0.34);
+  backdrop-filter: blur(18px);
+}
+
+.site-panel-soft {
+  background: rgba(255, 248, 238, 0.04);
+  border: 1px solid rgba(228, 200, 151, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(14px);
+}
+
+.site-kicker {
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+
+.site-title {
+  font-family: var(--font-display), var(--font-body), sans-serif;
+  letter-spacing: -0.03em;
+}
+
+.site-highlight {
+  color: var(--secondary);
+  font-style: italic;
+}
+
+.site-primary-button {
+  border: 1px solid rgba(149, 103, 69, 0.38);
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  box-shadow: 0 18px 50px rgba(149, 103, 69, 0.22);
+}
+
+.site-primary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 60px rgba(149, 103, 69, 0.28);
+}
+
+.site-outline-button {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(14px);
+}
+
+.site-outline-button:hover {
+  border-color: rgba(134, 180, 152, 0.45);
+  background: rgba(134, 180, 152, 0.08);
+}
+
+.site-image-frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(149, 103, 69, 0.28);
+  background: rgba(255, 248, 238, 0.02);
+  box-shadow:
+    0 30px 80px rgba(6, 3, 1, 0.38),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.site-image-frame::after {
+  content: "";
+  position: absolute;
+  inset: 1rem;
+  border: 1px solid rgba(134, 180, 152, 0.34);
+  pointer-events: none;
+}
+
 .afro-gradient {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 50%, var(--secondary) 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 55%, var(--accent) 100%);
 }
 
 .cinematic-overlay {
-  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
+  background:
+    linear-gradient(180deg, rgba(13, 11, 8, 0.18) 0%, rgba(13, 11, 8, 0.84) 100%),
+    radial-gradient(circle at center, rgba(149, 103, 69, 0.16), transparent 55%);
+}
+
+.neon-divider {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, rgba(149, 103, 69, 0.5), rgba(134, 180, 152, 0.45), transparent);
 }

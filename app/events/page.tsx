@@ -12,9 +12,18 @@ export default async function EventsPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const page = typeof resolvedSearchParams.page === 'string' ? parseInt(resolvedSearchParams.page) : 1;
-  const category = typeof resolvedSearchParams.category === 'string' ? resolvedSearchParams.category : undefined;
-  const search = typeof resolvedSearchParams.search === 'string' ? resolvedSearchParams.search : undefined;
+  const page =
+    typeof resolvedSearchParams.page === 'string'
+      ? parseInt(resolvedSearchParams.page)
+      : 1;
+  const category =
+    typeof resolvedSearchParams.category === 'string'
+      ? resolvedSearchParams.category
+      : undefined;
+  const search =
+    typeof resolvedSearchParams.search === 'string'
+      ? resolvedSearchParams.search
+      : undefined;
 
   const where = {
     ...(category && { category }),
@@ -48,30 +57,28 @@ export default async function EventsPage({
   const totalPages = Math.ceil(totalEvents / ITEMS_PER_PAGE);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24">
-      {/* Hero Header */}
-      <header className="relative h-[40vh] flex items-center justify-center text-center px-4 overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-primary/80 afro-gradient mix-blend-multiply z-10" />
-          <div className="absolute inset-0 bg-black/40 z-20" />
-        </div>
-        
-        <div className="relative z-30 max-w-3xl">
-          <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter mb-4 leading-none">
-            Find Your <span className="text-accent italic">Beat</span>
-          </h1>
-          <p className="text-lg text-slate-100/90 font-light max-w-xl mx-auto">
-            Discover upcoming workshops and classes. Filter by style, intensity, or search for your favorite session.
-          </p>
+    <div className="min-h-screen pb-24">
+      <header className="relative overflow-hidden px-4 pb-18 pt-32 md:px-6 md:pb-24">
+        <div className="absolute inset-x-0 top-0 h-full bg-[radial-gradient(circle_at_top_left,rgba(124,58,237,0.24),transparent_28rem),radial-gradient(circle_at_85%_20%,rgba(34,211,238,0.14),transparent_22rem)]" />
+
+        <div className="relative mx-auto max-w-7xl">
+          <div className="site-panel overflow-hidden rounded-[2.8rem] px-8 py-12 md:px-14 md:py-16">
+            <p className="site-kicker mb-4">Live event library</p>
+            <h1 className="site-title max-w-4xl text-4xl font-black uppercase leading-[0.92] text-white md:text-6xl">
+              Find Your <span className="site-highlight">Beat</span>
+            </h1>
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-300">
+              Browse the studio calendar, filter by energy, and lock in your next session before the room fills up.
+            </p>
+          </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 -mt-12 relative z-50">
-        <EventsList 
-          initialEvents={events} 
-          totalPages={totalPages} 
-          currentPage={page} 
+      <div className="mx-auto max-w-7xl px-4 md:px-6">
+        <EventsList
+          initialEvents={events}
+          totalPages={totalPages}
+          currentPage={page}
         />
       </div>
     </div>

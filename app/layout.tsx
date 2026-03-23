@@ -1,22 +1,43 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { CSSProperties } from "react";
+import { Space_Grotesk, Space_Mono, Sora } from "next/font/google";
+import theme from "./colors.json";
 import "./globals.css";
 import { Navbar } from "./components/Navbar";
 import { Providers } from "./providers";
 import { Toaster } from 'sonner';
 
-const geistSans = Geist({
+const bodyFont = Space_Grotesk({
   subsets: ["latin"],
-  variable: "--font-geist-sans",
+  variable: "--font-body",
 });
 
-const geistMono = Geist_Mono({
+const displayFont = Sora({
   subsets: ["latin"],
-  variable: "--font-geist-mono",
+  variable: "--font-display",
 });
+
+const monoFont = Space_Mono({
+  subsets: ["latin"],
+  variable: "--font-space-mono",
+  weight: ["400", "700"],
+});
+
+const themeStyle = {
+  "--background": theme.colors.navajowhite["950"],
+  "--foreground": theme.colors.navajowhite["100"],
+  "--primary": theme.colors.saddlebrown["400"],
+  "--secondary": theme.colors.orange["400"],
+  "--accent": theme.colors.darkseagreen["500"],
+  "--muted": theme.colors.navajowhite["600"],
+  "--panel": "rgba(25, 22, 17, 0.86)",
+  "--panel-strong": "rgba(13, 11, 8, 0.95)",
+  "--panel-soft": "rgba(255, 248, 238, 0.04)",
+  "--panel-border": "rgba(149, 103, 69, 0.32)",
+} as CSSProperties;
 
 export const viewport: Viewport = {
-  themeColor: "#c2410c",
+  themeColor: theme.colors.navajowhite["950"],
   width: "device-width",
   initialScale: 1,
 };
@@ -62,7 +83,8 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-primary selection:text-white`}
+        className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable} site-shell antialiased selection:bg-primary selection:text-white`}
+        style={themeStyle}
       >
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-primary focus:text-white">
           Skip to content

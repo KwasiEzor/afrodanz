@@ -113,6 +113,14 @@ model Booking {
   user  User  @relation(fields: [userId], references: [id])
   event Event @relation(fields: [eventId], references: [id])
 
-  expiresAt DateTime?
-  createdAt DateTime  @default(now())
+  stripeCheckoutSessionId String?   @unique
+  stripePaymentIntentId   String?   @unique
+  expiresAt               DateTime?
+  paidAt                  DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @default(now()) @updatedAt
+
+  @@unique([userId, eventId])
+  @@index([eventId, status, expiresAt])
+  @@index([userId, status])
 }

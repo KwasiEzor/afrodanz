@@ -1,23 +1,28 @@
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import { Calendar, MapPin, Clock, Users, ArrowLeft, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
-import { EventsPreview } from '@/app/components/EventsPreview';
+import { Calendar, MapPin, Clock, Users, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { auth } from '@/lib/auth';
+import {
+  EventsPreview,
+  type EventPreviewItem,
+} from '@/app/components/EventsPreview';
 import { BookingButton } from '@/app/components/BookingButton';
 import { isPrismaMissingTableError } from '@/lib/prisma-errors';
 
 export const dynamic = 'force-dynamic';
 
-export default async function EventDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function EventDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const session = await auth();
   const { slug } = await params;
 
-  let event: Awaited<ReturnType<typeof prisma.event.findUnique>>;
-
-  try {
-    event = await prisma.event.findUnique({
+  const getEvent = () =>
+    prisma.event.findUnique({
       where: { slug },
       include: {
         bookings: {
@@ -32,6 +37,11 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
         },
       },
     });
+
+  let event: Awaited<ReturnType<typeof getEvent>>;
+
+  try {
+    event = await getEvent();
   } catch (error) {
     if (isPrismaMissingTableError(error, 'Event')) {
       notFound();
@@ -42,10 +52,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
 
   if (!event) notFound();
 
-  let relatedEvents: Awaited<ReturnType<typeof prisma.event.findMany>> = [];
-
-  try {
-    relatedEvents = await prisma.event.findMany({
+  const getRelatedEvents = () =>
+    prisma.event.findMany({
       where: {
         id: {
           not: event.id,
@@ -68,6 +76,11 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
         category: true,
       },
     });
+
+  let relatedEvents: Awaited<ReturnType<typeof getRelatedEvents>> = [];
+
+  try {
+    relatedEvents = await getRelatedEvents();
   } catch (error) {
     if (!isPrismaMissingTableError(error, 'Event')) {
       throw error;
@@ -79,119 +92,145 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
       eventId: event.id,
       status: 'PENDING',
       expiresAt: { gt: new Date() },
-      ...(session?.user?.id
-        ? { NOT: { userId: session.user.id } }
-        : {}),
+      ...(session?.user?.id ? { NOT: { userId: session.user.id } } : {}),
     },
   });
 
   const spotsLeft = event.capacity - event._count.bookings - activePendingOthers;
-  const alreadyBooked = session?.user ? event.bookings.some(b => b.userId === session.user?.id) : false;
-  const previewEvents = relatedEvents.map((relatedEvent) => ({
+  const alreadyBooked = session?.user
+    ? event.bookings.some((booking) => booking.userId === session.user?.id)
+    : false;
+  const previewEvents: EventPreviewItem[] = relatedEvents.map((relatedEvent) => ({
     ...relatedEvent,
     date: relatedEvent.date.toISOString(),
   }));
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Top Navigation */}
-      <nav className="fixed top-0 w-full z-50 px-6 py-4 bg-background/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link href="/events" className="flex items-center gap-2 font-bold text-muted hover:text-primary transition-all">
-            <ArrowLeft className="w-5 h-5" /> Back to Events
-          </Link>
-          <div className="text-xl font-black uppercase tracking-tight">AFRO <span className="text-primary italic">DANZ</span></div>
-        </div>
-      </nav>
+  const formattedDate = new Date(event.date);
 
-      <div className="pt-24 pb-24 px-6">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12">
-          {/* Visual Column */}
-          <div className="space-y-8">
-            <div className="relative aspect-[4/5] rounded-[3rem] overflow-hidden shadow-2xl">
-              <Image 
-                src={event.image || "/page_facbook_kouami_atelier_danse_africaine.jpg"} 
-                alt={event.title} 
-                fill 
+  return (
+    <div className="min-h-screen pb-24 pt-24">
+      <div className="mx-auto max-w-7xl px-4 md:px-6">
+        <nav className="mb-8">
+          <Link
+            href="/events"
+            className="site-outline-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-white"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Events
+          </Link>
+        </nav>
+
+        <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
+          <div className="space-y-6">
+            <div className="site-image-frame aspect-[0.88] rounded-[2.8rem]">
+              <Image
+                src={event.image || '/page_facbook_kouami_atelier_danse_africaine.jpg'}
+                alt={event.title}
+                fill
                 className="object-cover"
               />
-              <div className="absolute top-6 left-6 px-6 py-2 bg-accent text-white font-black rounded-full uppercase tracking-widest text-sm shadow-xl">
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,10,18,0.08),rgba(8,10,18,0.72))]" />
+              <div className="absolute left-6 top-6 rounded-full border border-accent/22 bg-accent/10 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-accent">
                 {event.category}
               </div>
             </div>
-            
-            <div className="bg-slate-50 dark:bg-slate-900/50 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800">
-              <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><ShieldCheck className="w-6 h-6 text-green-500" /> Safe & Secure Booking</h3>
-              <p className="text-muted leading-relaxed">
-                Your spot is guaranteed once payment is completed. We use bank-level encryption (SSL) to protect your financial data and transaction history.
-              </p>
+
+            <div className="site-panel rounded-[2rem] p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/14 text-emerald-300">
+                  <ShieldCheck className="h-6 w-6" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black uppercase tracking-[0.2em] text-white">
+                    Secure Booking
+                  </h2>
+                  <p className="mt-2 text-sm leading-7 text-slate-400">
+                    Your place is confirmed when payment completes. Active reservations are protected to stop overselling.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Content Column */}
-          <div className="flex flex-col">
-            <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-8">
-              {event.title.split(' ')[0]} <br />
-              <span className="text-primary italic">{event.title.split(' ').slice(1).join(' ')}</span>
+          <div className="site-panel rounded-[2.8rem] p-8 md:p-10">
+            <p className="site-kicker mb-4">Event spotlight</p>
+            <h1 className="site-title text-4xl font-black uppercase leading-[0.92] text-white md:text-6xl">
+              {event.title.split(' ')[0]}
+              <span className="site-highlight block">
+                {event.title.split(' ').slice(1).join(' ') || 'Session'}
+              </span>
             </h1>
 
-            <p className="text-xl text-muted leading-relaxed mb-10 font-light">
-              {event.description || "Join us for an immersive Afro dance experience. Master the foundations, rhythms, and high-energy choreography in this special session."}
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+              {event.description ||
+                'Join us for an immersive Afro dance experience. Master foundations, musicality, and high-energy choreography in one cinematic studio session.'}
             </p>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 gap-4 mb-10">
-              <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl">
-                <Calendar className="w-6 h-6 text-primary mb-3" />
-                <p className="text-xs text-muted uppercase font-black tracking-widest mb-1">Date</p>
-                <p className="font-bold">{new Date(event.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+            <div className="mt-10 grid gap-4 sm:grid-cols-2">
+              <div className="site-panel-soft rounded-[1.8rem] p-5">
+                <Calendar className="mb-3 h-5 w-5 text-secondary" />
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">Date</p>
+                <p className="mt-2 font-bold text-white">
+                  {formattedDate.toLocaleDateString('en-GB', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                  })}
+                </p>
               </div>
-              <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl">
-                <Clock className="w-6 h-6 text-primary mb-3" />
-                <p className="text-xs text-muted uppercase font-black tracking-widest mb-1">Time</p>
-                <p className="font-bold">{new Date(event.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
+              <div className="site-panel-soft rounded-[1.8rem] p-5">
+                <Clock className="mb-3 h-5 w-5 text-secondary" />
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">Time</p>
+                <p className="mt-2 font-bold text-white">
+                  {formattedDate.toLocaleTimeString('en-GB', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </p>
               </div>
-              <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl">
-                <MapPin className="w-6 h-6 text-primary mb-3" />
-                <p className="text-xs text-muted uppercase font-black tracking-widest mb-1">Venue</p>
-                <p className="font-bold">{event.location}</p>
+              <div className="site-panel-soft rounded-[1.8rem] p-5">
+                <MapPin className="mb-3 h-5 w-5 text-secondary" />
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">Venue</p>
+                <p className="mt-2 font-bold text-white">{event.location}</p>
               </div>
-              <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl">
-                <Users className="w-6 h-6 text-primary mb-3" />
-                <p className="text-xs text-muted uppercase font-black tracking-widest mb-1">Spots Left</p>
-                <p className="font-bold text-primary">{spotsLeft > 0 ? spotsLeft : 0} / {event.capacity}</p>
+              <div className="site-panel-soft rounded-[1.8rem] p-5">
+                <Users className="mb-3 h-5 w-5 text-secondary" />
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">Spots Left</p>
+                <p className="mt-2 font-bold text-white">
+                  {spotsLeft > 0 ? spotsLeft : 0} / {event.capacity}
+                </p>
               </div>
             </div>
 
-            <div className="mt-auto pt-8 border-t border-slate-100 dark:border-slate-800">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <p className="text-sm text-muted uppercase font-black tracking-widest">Total Price</p>
-                  <p className="text-4xl font-black">€{event.price / 100}</p>
-                </div>
-                <BookingButton 
-                  eventId={event.id}
-                  hasUser={!!session?.user}
-                  spotsLeft={spotsLeft}
-                  alreadyBooked={alreadyBooked}
-                />
+            <div className="neon-divider my-8" />
+
+            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">
+                  Total Price
+                </p>
+                <p className="display-type mt-2 text-5xl font-black text-white">
+                  €{event.price / 100}
+                </p>
               </div>
+              <BookingButton
+                eventId={event.id}
+                hasUser={!!session?.user}
+                spotsLeft={spotsLeft}
+                alreadyBooked={alreadyBooked}
+              />
             </div>
           </div>
         </div>
       </div>
 
-      {/* More Events */}
-      <section className="bg-slate-50 dark:bg-slate-900/30 py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-black uppercase tracking-tight mb-12">Other <span className="text-primary italic">Ateliers</span> You&apos;ll Love</h2>
-          <EventsPreview
-            events={previewEvents}
-            title="More Events"
-            description="Keep the momentum going with more upcoming workshops from the studio."
-            emptyMessage="This is the last upcoming event on the calendar for now."
-          />
-        </div>
+      <section className="mt-20">
+        <EventsPreview
+          events={previewEvents}
+          title="More Events"
+          description="Keep the momentum going with more sessions from the AfroDanz calendar."
+          emptyMessage="This is the last upcoming event on the calendar for now."
+        />
       </section>
     </div>
   );

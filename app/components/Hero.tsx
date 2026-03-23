@@ -3,76 +3,116 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { ArrowUpRight, Play, Sparkles } from 'lucide-react';
+
+const STATS = [
+  { value: '12+', label: 'weekly sessions' },
+  { value: '350+', label: 'active dancers' },
+  { value: '4.9', label: 'member rating' },
+];
 
 export function Hero() {
   return (
-    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
-      {/* Background Image / Placeholder */}
-      <div className="absolute inset-0 z-0">
-        <Image 
-          src="/page_facbook_kouami_atelier_danse_africaine.jpg"
-          alt="Afro Danse Atelier"
-          fill
-          className="object-cover scale-105"
-          priority
-        />
-        <div className="absolute inset-0 bg-black/40 z-10" />
-        <div className="absolute inset-0 cinematic-overlay z-20" />
-      </div>
+    <section className="relative isolate overflow-hidden px-4 pb-16 pt-32 md:px-6 md:pb-24 md:pt-36">
+      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_top_left,rgba(124,58,237,0.28),transparent_28rem),radial-gradient(circle_at_85%_22%,rgba(236,72,153,0.18),transparent_24rem)]" />
+      <div className="absolute inset-x-0 top-0 -z-10 h-[28rem] bg-[linear-gradient(180deg,rgba(124,58,237,0.12),transparent)]" />
 
-      {/* Content */}
-      <div className="relative z-30 text-center px-4 max-w-5xl">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        >
-          <span className="text-accent font-bold tracking-widest uppercase mb-4 block">Unleash Your Spirit</span>
-          <h1 className="text-6xl md:text-8xl font-black text-white mb-6 tracking-tighter leading-none">
-            AFRO <span className="text-primary italic">DANZ</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-slate-100/90 mb-10 max-w-2xl mx-auto font-light leading-relaxed">
-            Experience the heartbeat of rhythm. Join our vibrant community and master the art of Afro movement.
-          </p>
-          
-          <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-full md:w-auto"
-            >
+      <div className="mx-auto grid max-w-7xl gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+        <div className="relative">
+          <motion.div
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="max-w-3xl"
+          >
+            <p className="site-kicker mb-5">Neon Afro Movement</p>
+            <h1 className="site-title text-4xl font-black uppercase leading-[0.9] text-white sm:text-5xl md:text-6xl lg:text-7xl">
+              Feel The
+              <span className="site-highlight block">Beat Before</span>
+              The Drop
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300 md:text-xl">
+              AfroDanz brings high-energy Afro classes, contemporary workshops, and
+              membership experiences into one cinematic studio world built for dancers
+              who want more than a standard timetable.
+            </p>
+
+            <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
               <Link
                 href="/events"
-                className="block px-8 py-4 bg-primary text-white font-bold rounded-full text-lg shadow-xl afro-gradient hover:brightness-110 transition-all text-center"
+                className="site-primary-button inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
               >
-                Book a Workshop
+                Book a Session
+                <ArrowUpRight className="h-4 w-4" />
               </Link>
-            </motion.div>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-full md:w-auto"
-            >
               <Link
-                href="/contact"
-                className="block px-8 py-4 border-2 border-white/30 text-white font-bold rounded-full text-lg backdrop-blur-md hover:bg-white/10 transition-all text-center"
+                href="/about"
+                className="site-outline-button inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
               >
-                Plan Your Visit
+                <Play className="h-4 w-4" />
+                Explore the Studio
               </Link>
-            </motion.div>
+            </div>
+
+            <div className="mt-12 grid gap-4 sm:grid-cols-3">
+              {STATS.map((item) => (
+                <div key={item.label} className="site-panel-soft rounded-[1.75rem] px-5 py-6">
+                  <p className="display-type text-3xl font-black text-white">{item.value}</p>
+                  <p className="mt-2 text-xs font-black uppercase tracking-[0.24em] text-slate-400">
+                    {item.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 32 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.9, ease: 'easeOut', delay: 0.1 }}
+          className="relative"
+        >
+          <div className="site-image-frame aspect-[0.9] rounded-[2.8rem]">
+            <Image
+              src="/page_facbook_kouami_atelier_danse_africaine.jpg"
+              alt="AfroDanz featured dancer"
+              fill
+              priority
+              className="object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,10,18,0.08),rgba(7,10,18,0.78))]" />
+            <div className="absolute left-6 top-6 rounded-full border border-white/14 bg-black/30 px-4 py-2 text-[0.65rem] font-black uppercase tracking-[0.3em] text-slate-100 backdrop-blur-md">
+              Spring Residency
+            </div>
+            <div className="absolute bottom-6 left-6 right-6 rounded-[2rem] border border-white/10 bg-[#0d1120]/82 p-5 backdrop-blur-xl">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="site-kicker mb-2">Featured Intensive</p>
+                  <h2 className="site-title text-2xl font-black text-white">
+                    Afro Fusion Lab
+                  </h2>
+                </div>
+                <span className="rounded-full border border-accent/30 bg-accent/12 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-accent">
+                  Live Now
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="absolute -left-4 bottom-10 hidden w-48 rounded-[1.75rem] border border-white/10 bg-[#11162a]/92 p-4 shadow-2xl backdrop-blur-xl md:block">
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/18 text-primary">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <p className="text-sm font-black uppercase tracking-[0.22em] text-white">
+              Member Perks
+            </p>
+            <p className="mt-2 text-sm leading-6 text-slate-400">
+              Priority booking, curated workshops, and late-night community jams.
+            </p>
           </div>
         </motion.div>
       </div>
-
-      {/* Floating Elements (Atmosphere) */}
-      <motion.div
-        animate={{ 
-          y: [0, -20, 0],
-          rotate: [0, 5, 0]
-        }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-10 left-10 w-24 h-24 border border-accent/20 rounded-full blur-sm"
-      />
     </section>
   );
 }

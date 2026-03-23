@@ -1,73 +1,144 @@
-import { headers } from "next/headers"
-import { NextResponse } from "next/server"
-import type Stripe from "stripe"
-import { stripe } from "@/lib/stripe"
-import prisma from "@/lib/prisma"
-import { BookingStatus, SubscriptionStatus } from "@prisma/client"
-import { subscriptionStatusFromStripe } from "@/lib/stripe-subscription-status"
+import { headers } from 'next/headers';
+import { NextResponse } from 'next/server';
+import type Stripe from 'stripe';
+import { BookingStatus, SubscriptionStatus } from '@prisma/client';
+import prisma from '@/lib/prisma';
+import { stripe } from '@/lib/stripe';
+import { subscriptionStatusFromStripe } from '@/lib/stripe-subscription-status';
 
-export async function POST(req: Request) {
-  const body = await req.text()
-  const signature = (await headers()).get("Stripe-Signature")
-  if (!signature) {
-    return new NextResponse("Missing Stripe-Signature", { status: 400 })
+function getPaymentIntentId(session: Stripe.Checkout.Session) {
+  if (typeof session.payment_intent === 'string') {
+    return session.payment_intent;
   }
 
-  let event: Stripe.Event
+  return session.payment_intent?.id ?? null;
+}
+
+async function markBookingPaid(session: Stripe.Checkout.Session) {
+  const bookingId = session.metadata?.bookingId ?? session.client_reference_id;
+
+  if (!bookingId) {
+    console.error('Stripe webhook: missing booking identifier', {
+      sessionId: session.id,
+    });
+    return;
+  }
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: { event: true },
+  });
+
+  if (!booking) {
+    console.error('Stripe webhook: booking not found', bookingId);
+    return;
+  }
+
+  if (booking.status === BookingStatus.PAID) {
+    return;
+  }
+
+  if (booking.stripeCheckoutSessionId && booking.stripeCheckoutSessionId !== session.id) {
+    console.error('Stripe webhook: checkout session mismatch', {
+      bookingId,
+      expected: booking.stripeCheckoutSessionId,
+      got: session.id,
+    });
+    return;
+  }
+
+  if (session.payment_status !== 'paid') {
+    return;
+  }
+
+  if (
+    booking.event.price > 0 &&
+    session.amount_total != null &&
+    session.amount_total !== booking.event.price
+  ) {
+    console.error('Stripe webhook: amount mismatch', {
+      bookingId,
+      expected: booking.event.price,
+      got: session.amount_total,
+    });
+    return;
+  }
+
+  await prisma.booking.update({
+    where: { id: bookingId },
+    data: {
+      status: BookingStatus.PAID,
+      expiresAt: null,
+      paidAt: new Date(),
+      stripeCheckoutSessionId: session.id,
+      stripePaymentIntentId: getPaymentIntentId(session),
+    },
+  });
+}
+
+async function expireBookingHold(session: Stripe.Checkout.Session) {
+  const bookingId = session.metadata?.bookingId ?? session.client_reference_id;
+
+  if (!bookingId) {
+    return;
+  }
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+  });
+
+  if (!booking || booking.status !== BookingStatus.PENDING) {
+    return;
+  }
+
+  if (booking.stripeCheckoutSessionId && booking.stripeCheckoutSessionId !== session.id) {
+    return;
+  }
+
+  await prisma.booking.update({
+    where: { id: bookingId },
+    data: {
+      status: BookingStatus.CANCELED,
+      expiresAt: null,
+      stripeCheckoutSessionId: null,
+      stripePaymentIntentId: null,
+    },
+  });
+}
+
+export async function POST(req: Request) {
+  const body = await req.text();
+  const signature = (await headers()).get('Stripe-Signature');
+  if (!signature) {
+    return new NextResponse('Missing Stripe-Signature', { status: 400 });
+  }
+
+  let event: Stripe.Event;
 
   try {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!
-    )
+    );
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error"
-    return new NextResponse(`Webhook Error: ${message}`, { status: 400 })
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return new NextResponse(`Webhook Error: ${message}`, { status: 400 });
   }
 
   switch (event.type) {
-    case "checkout.session.completed": {
-      const session = event.data.object as Stripe.Checkout.Session
-      const bookingId = session.metadata?.bookingId
-      const userId = session.metadata?.userId
+    case 'checkout.session.completed': {
+      const session = event.data.object as Stripe.Checkout.Session;
 
-      if (bookingId) {
-        const booking = await prisma.booking.findUnique({
-          where: { id: bookingId },
-          include: { event: true },
-        })
+      if (session.mode === 'payment') {
+        await markBookingPaid(session);
+      } else if (session.mode === 'subscription') {
+        const userId = session.metadata?.userId;
 
-        if (!booking) {
-          console.error("Stripe webhook: booking not found", bookingId)
-          break
+        if (!userId) {
+          break;
         }
 
-        if (session.payment_status !== "paid") {
-          break
-        }
-
-        if (
-          booking.event.price > 0 &&
-          session.amount_total != null &&
-          session.amount_total !== booking.event.price
-        ) {
-          console.error("Stripe webhook: amount mismatch", {
-            bookingId,
-            expected: booking.event.price,
-            got: session.amount_total,
-          })
-          break
-        }
-
-        await prisma.booking.update({
-          where: { id: bookingId },
-          data: {
-            status: BookingStatus.PAID,
-            expiresAt: null,
-          },
-        })
-      } else if (userId && session.mode === "subscription") {
         await prisma.user.update({
           where: { id: userId },
           data: {
@@ -75,55 +146,60 @@ export async function POST(req: Request) {
             stripeCustomerId: session.customer as string,
             subscriptionStatus: SubscriptionStatus.ACTIVE,
           },
-        })
+        });
       }
-      break
+      break;
     }
 
-    case "customer.subscription.deleted": {
-      const subscriptionDeleted = event.data.object as Stripe.Subscription
+    case 'checkout.session.expired': {
+      await expireBookingHold(event.data.object as Stripe.Checkout.Session);
+      break;
+    }
+
+    case 'customer.subscription.deleted': {
+      const subscriptionDeleted = event.data.object as Stripe.Subscription;
       await prisma.user.update({
         where: { stripeSubscriptionId: subscriptionDeleted.id },
         data: {
           subscriptionStatus: SubscriptionStatus.CANCELED,
         },
-      })
-      break
+      });
+      break;
     }
 
-    case "customer.subscription.updated": {
-      const subscriptionUpdated = event.data.object as Stripe.Subscription
-      const nextStatus = subscriptionStatusFromStripe(subscriptionUpdated.status)
+    case 'customer.subscription.updated': {
+      const subscriptionUpdated = event.data.object as Stripe.Subscription;
+      const nextStatus = subscriptionStatusFromStripe(subscriptionUpdated.status);
       if (nextStatus) {
         await prisma.user.update({
           where: { stripeSubscriptionId: subscriptionUpdated.id },
           data: {
             subscriptionStatus: nextStatus,
           },
-        })
+        });
       }
-      break
+      break;
     }
 
-    case "invoice.payment_failed": {
+    case 'invoice.payment_failed': {
       const invoiceFailed = event.data.object as Stripe.Invoice & {
-        subscription?: string | Stripe.Subscription | null
-      }
+        subscription?: string | Stripe.Subscription | null;
+      };
       const subId =
-        typeof invoiceFailed.subscription === "string"
+        typeof invoiceFailed.subscription === 'string'
           ? invoiceFailed.subscription
-          : invoiceFailed.subscription?.id
+          : invoiceFailed.subscription?.id;
       if (subId) {
         await prisma.user.update({
           where: { stripeSubscriptionId: subId },
           data: {
             subscriptionStatus: SubscriptionStatus.PAST_DUE,
           },
-        })
+        });
       }
-      break
+      break;
     }
   }
 
-  return new NextResponse(null, { status: 200 })
+  return new NextResponse(null, { status: 200 });
 }

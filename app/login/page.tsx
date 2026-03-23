@@ -7,7 +7,7 @@ import Image from 'next/image';
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen w-full flex flex-col md:flex-row bg-background">
       {/* Visual Side */}
       <div className="relative w-full md:w-1/2 h-[300px] md:h-auto overflow-hidden">
         <Image 
@@ -25,7 +25,7 @@ export default function LoginPage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <h2 className="text-5xl font-black text-white leading-none uppercase tracking-tighter mb-4">
+            <h2 className="site-title text-4xl font-black uppercase leading-[0.92] text-white md:text-5xl mb-4">
               Join the <br /><span className="text-primary italic">Movement</span>
             </h2>
             <p className="text-slate-200 max-w-sm font-light">
@@ -50,7 +50,7 @@ export default function LoginPage() {
           <div className="space-y-4">
             <button 
               onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
-              className="w-full flex items-center justify-center gap-4 py-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm"
+              className="site-panel-soft w-full flex items-center justify-center gap-4 py-4 rounded-2xl font-bold text-white hover:bg-white/8"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -63,7 +63,7 @@ export default function LoginPage() {
 
             <button 
               onClick={() => signIn('github', { callbackUrl: '/dashboard' })}
-              className="w-full flex items-center justify-center gap-4 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg"
+              className="site-primary-button w-full flex items-center justify-center gap-4 py-4 rounded-2xl font-bold text-white"
             >
               <Github className="w-5 h-5" />
               Continue with GitHub
@@ -72,12 +72,12 @@ export default function LoginPage() {
 
           <div className="mt-12">
             <div className="relative mb-8">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200 dark:border-slate-800"></div></div>
-              <div className="relative flex justify-center text-xs uppercase"><span className="bg-slate-50 dark:bg-slate-950 px-4 text-muted font-bold tracking-widest">Or Secure Login</span></div>
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"></div></div>
+              <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-4 text-muted font-bold tracking-widest">Or Secure Login</span></div>
             </div>
 
             <p className="text-center text-sm text-muted">
-              By joining, you agree to our <a href="#" className="text-primary font-bold">Terms of Service</a> and <a href="#" className="text-primary font-bold">Privacy Policy</a>.
+              By joining, you agree to our <a href="/terms" className="text-primary font-bold">Terms of Service</a> and <a href="/privacy" className="text-primary font-bold">Privacy Policy</a>.
             </p>
           </div>
         </motion.div>

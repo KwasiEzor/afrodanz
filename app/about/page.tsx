@@ -1,151 +1,161 @@
 import Image from 'next/image';
-import { Heart, Globe, Users, Star } from 'lucide-react';
 import Link from 'next/link';
+import { Globe, Heart, Sparkles, Star, Users } from 'lucide-react';
 import prisma from '@/lib/prisma';
+
+const VALUES = [
+  {
+    icon: Users,
+    title: 'Community First',
+    body: 'We build rooms where dancers feel seen, challenged, and connected from the first beat.',
+  },
+  {
+    icon: Star,
+    title: 'High Standards',
+    body: 'Curated teachers, intentional choreography, and an elevated studio atmosphere every week.',
+  },
+  {
+    icon: Globe,
+    title: 'Cultural Respect',
+    body: 'The studio experience stays grounded in the music, movement, and roots that shaped it.',
+  },
+];
 
 export const dynamic = 'force-dynamic';
 
 export default async function AboutPage() {
   const instructors = await prisma.user.findMany({
     where: { role: 'ADMIN' },
-    select: { name: true, image: true, id: true }
+    select: { name: true, image: true, id: true },
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* ... Hero Section ... */}
-      <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
-        <Image 
-          src="/page_facbook_kouami_atelier_danse_africaine.jpg"
-          alt="AfroDanz Community"
-          fill
-          className="object-cover brightness-50"
-        />
-        <div className="relative z-10 text-center px-6">
-          <h1 className="text-6xl md:text-8xl font-black text-white uppercase tracking-tighter mb-4">
-            Our <span className="text-primary italic">Story</span>
-          </h1>
-          <p className="text-xl text-slate-200 max-w-2xl mx-auto font-light">
-            More than a studio. A movement dedicated to the preservation and celebration of African rhythm and culture.
-          </p>
-        </div>
-      </section>
-
-      {/* ... Mission Section ... */}
-      <section className="py-24 px-6">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+    <div className="min-h-screen pb-24 pt-24">
+      <section className="px-4 md:px-6">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
-            <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight mb-8">
-              The Heartbeat of <span className="text-primary italic">Heritage</span>
-            </h2>
-            <div className="space-y-6 text-lg text-muted leading-relaxed">
-              <p>
-                AfroDanz was born out of a passion for the diverse and high-energy dance styles emerging from the African continent. From the street-style energy of Amapiano to the traditional foundations of West African dance, our mission is to provide an authentic space for learning and expression.
-              </p>
-              <p>
-                We believe that dance is a universal language that connects us to our roots and to each other. Our workshops are designed for all levels, ensuring that the joy of Afro movement is accessible to everyone.
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-8 mt-12">
-              <div className="flex flex-col items-center md:items-start">
-                <Globe className="w-10 h-10 text-primary mb-4" />
-                <h4 className="font-bold text-xl mb-2">Global Vision</h4>
-                <p className="text-sm text-muted text-center md:text-left">Spreading Afro culture across the world through rhythm.</p>
+            <p className="site-kicker mb-4">Studio story</p>
+            <h1 className="site-title text-4xl font-black uppercase leading-[0.92] text-white md:text-6xl">
+              More Than
+              <span className="site-highlight block">A Dance Class</span>
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+              AfroDanz was built as a movement space for dancers who want technique, culture, music, and atmosphere in the same room. We mix immersive training with community energy and a visual identity that feels alive.
+            </p>
+
+            <div className="mt-10 grid gap-4 sm:grid-cols-2">
+              <div className="site-panel-soft rounded-[1.8rem] p-6">
+                <Heart className="mb-4 h-6 w-6 text-secondary" />
+                <h2 className="display-type text-2xl font-black uppercase text-white">Driven by passion</h2>
+                <p className="mt-3 text-sm leading-7 text-slate-400">
+                  Every workshop is designed to feel intentional, energetic, and rooted in real movement culture.
+                </p>
               </div>
-              <div className="flex flex-col items-center md:items-start">
-                <Heart className="w-10 h-10 text-primary mb-4" />
-                <h4 className="font-bold text-xl mb-2">Pure Passion</h4>
-                <p className="text-sm text-muted text-center md:text-left">Every class is fueled by love for the movement.</p>
+              <div className="site-panel-soft rounded-[1.8rem] p-6">
+                <Sparkles className="mb-4 h-6 w-6 text-accent" />
+                <h2 className="display-type text-2xl font-black uppercase text-white">Designed to stand out</h2>
+                <p className="mt-3 text-sm leading-7 text-slate-400">
+                  Visual storytelling, music curation, and choreography all work together inside the studio experience.
+                </p>
               </div>
             </div>
           </div>
-          
-          <div className="relative aspect-square rounded-[3rem] overflow-hidden shadow-2xl rotate-3">
-             <Image 
+
+          <div className="site-image-frame aspect-[0.94] rounded-[2.8rem]">
+            <Image
               src="/page_facbook_kouami_atelier_danse_africaine.jpg"
-              alt="Afro Dance Workshop"
+              alt="AfroDanz community"
               fill
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-primary/20 mix-blend-overlay" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,10,18,0.1),rgba(7,10,18,0.8))]" />
           </div>
         </div>
       </section>
 
-      {/* Instructors Section */}
-      <section className="py-24 bg-slate-50 dark:bg-slate-900/50 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight mb-4">Master <span className="text-primary italic">Instructors</span></h2>
-            <p className="text-muted text-lg font-light">The talented visionaries behind our rhythms.</p>
+      <section className="px-4 py-24 md:px-6">
+        <div className="site-panel mx-auto max-w-7xl rounded-[2.8rem] p-8 md:p-12">
+          <div className="mb-12">
+            <p className="site-kicker mb-4">What we protect</p>
+            <h2 className="site-title text-3xl font-black uppercase text-white md:text-5xl">
+              The Heartbeat of <span className="site-highlight">Heritage</span>
+            </h2>
           </div>
-          
-          <div className="grid md:grid-cols-3 gap-12">
+
+          <div className="grid gap-8 md:grid-cols-3">
+            {VALUES.map((value) => (
+              <article key={value.title} className="site-panel-soft rounded-[2rem] p-8">
+                <value.icon className="mb-5 h-8 w-8 text-primary" />
+                <h3 className="display-type text-2xl font-black uppercase text-white">
+                  {value.title}
+                </h3>
+                <p className="mt-4 text-sm leading-7 text-slate-400">{value.body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 md:px-6">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-12">
+            <p className="site-kicker mb-4">Creative leads</p>
+            <h2 className="site-title text-3xl font-black uppercase text-white md:text-5xl">
+              Master <span className="site-highlight">Instructors</span>
+            </h2>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-3">
             {instructors.map((instructor) => (
-              <div key={instructor.id} className="text-center group">
-                <div className="relative aspect-square w-64 mx-auto mb-8 rounded-[3rem] overflow-hidden grayscale hover:grayscale-0 transition-all duration-500 shadow-xl group-hover:scale-105">
-                  <Image 
-                    src={instructor.image || "/page_facbook_kouami_atelier_danse_africaine.jpg"} 
-                    alt={instructor.name || "Instructor"} 
-                    fill 
+              <div key={instructor.id} className="site-panel overflow-hidden rounded-[2.4rem] p-6 text-center">
+                <div className="site-image-frame mx-auto aspect-square max-w-[18rem] rounded-[2rem]">
+                  <Image
+                    src={instructor.image || '/page_facbook_kouami_atelier_danse_africaine.jpg'}
+                    alt={instructor.name || 'Instructor'}
+                    fill
                     className="object-cover"
                   />
                 </div>
-                <h3 className="text-2xl font-black uppercase tracking-tight">{instructor.name || "Instructor"}</h3>
-                <p className="text-primary font-bold uppercase tracking-widest text-sm italic">Master Choreographer</p>
+                <h3 className="site-title mt-6 text-3xl font-black uppercase text-white">
+                  {instructor.name || 'Instructor'}
+                </h3>
+                <p className="mt-2 text-xs font-black uppercase tracking-[0.24em] text-accent">
+                  Master Choreographer
+                </p>
               </div>
             ))}
             {instructors.length === 0 && (
-               <div className="col-span-full text-center text-muted italic">Our team is currently preparing for the next season. Stay tuned!</div>
+              <div className="site-panel col-span-full rounded-[2.4rem] px-8 py-16 text-center text-slate-400">
+                Our team is currently preparing for the next season. Stay tuned.
+              </div>
             )}
           </div>
         </div>
       </section>
 
-      {/* ... rest of the page ... */}
-
-      {/* Values Banner */}
-      <section className="bg-slate-950 text-white py-24 px-6 overflow-hidden relative">
-        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] afro-gradient rounded-full blur-[120px]" />
-        </div>
-        
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter">Our Core <span className="text-accent italic">Values</span></h2>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-12">
-            <div className="text-center">
-              <Users className="w-12 h-12 text-primary mx-auto mb-6" />
-              <h3 className="text-2xl font-bold mb-4 uppercase">Community First</h3>
-              <p className="text-slate-400">We grow together. AfroDanz is a safe space for everyone to express themselves and find their tribe.</p>
-            </div>
-            <div className="text-center">
-              <Star className="w-12 h-12 text-primary mx-auto mb-6" />
-              <h3 className="text-2xl font-bold mb-4 uppercase">Excellence</h3>
-              <p className="text-slate-400">We bring the best instructors and curators to ensure you receive the highest quality training.</p>
-            </div>
-            <div className="text-center">
-              <Globe className="w-12 h-12 text-primary mx-auto mb-6" />
-              <h3 className="text-2xl font-bold mb-4 uppercase">Authenticity</h3>
-              <p className="text-slate-400">We respect the origins. Our teachers are deeply rooted in the cultures they represent.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action */}
-      <section className="py-24 px-6 text-center">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tight mb-8">Ready to <span className="text-primary italic">Dance?</span></h2>
-          <p className="text-xl text-muted mb-12 font-light">
-            Join our next workshop and experience the energy for yourself. No experience required—just bring your spirit.
+      <section className="px-4 py-24 md:px-6">
+        <div className="site-panel mx-auto flex max-w-5xl flex-col gap-8 rounded-[2.8rem] px-8 py-12 text-center md:px-12">
+          <p className="site-kicker">Ready for the room</p>
+          <h2 className="site-title text-3xl font-black uppercase text-white md:text-5xl">
+            Step Into the <span className="site-highlight">Next Session</span>
+          </h2>
+          <p className="mx-auto max-w-2xl text-lg leading-8 text-slate-300">
+            Join the next workshop and feel the energy of AfroDanz in person.
           </p>
-          <Link href="/events" className="inline-block px-12 py-5 bg-primary text-white font-black rounded-full shadow-2xl shadow-primary/30 hover:scale-110 transition-all text-xl">
-            Explore Workshops
-          </Link>
+          <div className="flex flex-col justify-center gap-4 sm:flex-row">
+            <Link
+              href="/events"
+              className="site-primary-button rounded-full px-7 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
+            >
+              Explore Workshops
+            </Link>
+            <Link
+              href="/contact"
+              className="site-outline-button rounded-full px-7 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
+            >
+              Contact the Studio
+            </Link>
+          </div>
         </div>
       </section>
     </div>
