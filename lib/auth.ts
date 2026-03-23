@@ -6,8 +6,14 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import prisma from "@/lib/prisma"
 import { authConfig } from "./auth.config"
 
+// Auth.js requires a secret even when no OAuth provider is configured yet.
+// Use a conspicuous fallback so local dev and build don't crash on a missing env.
+const authSecret =
+  process.env.AUTH_SECRET ?? "auth_secret_placeholder_replace_in_runtime"
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
+  secret: authSecret,
   session: { strategy: "jwt" },
   ...authConfig,
   callbacks: {

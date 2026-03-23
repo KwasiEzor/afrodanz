@@ -123,7 +123,7 @@ describe('bookEvent Server Action', () => {
     });
   });
 
-  it('should require NEXT_PUBLIC_APP_URL for checkout redirects', async () => {
+  it('should fall back to localhost checkout redirects when no app URL env is configured in test/dev', async () => {
     delete process.env.NEXT_PUBLIC_APP_URL;
 
     vi.mocked(auth).mockResolvedValue({
@@ -145,9 +145,23 @@ describe('bookEvent Server Action', () => {
     vi.mocked(prisma.booking.create).mockResolvedValue({
       id: 'booking_1',
     } as unknown as Awaited<ReturnType<typeof prisma.booking.create>>);
+    vi.mocked(prisma.booking.update).mockResolvedValue({
+      id: 'booking_1',
+    } as unknown as Awaited<ReturnType<typeof prisma.booking.update>>);
+    vi.mocked(stripe.checkout.sessions.create).mockResolvedValue({
+      id: 'cs_new',
+      url: 'https://checkout.stripe.test/new',
+      payment_intent: 'pi_new',
+    } as unknown as Awaited<ReturnType<typeof stripe.checkout.sessions.create>>);
 
-    await expect(bookEvent('event_1')).rejects.toThrow(
-      'NEXT_PUBLIC_APP_URL is not configured'
+    await expect(bookEvent('event_1')).resolves.toEqual({
+      url: 'https://checkout.stripe.test/new',
+    });
+    expect(stripe.checkout.sessions.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success_url: 'http://localhost:3000/dashboard?booking_success=true',
+        cancel_url: 'http://localhost:3000/events/workshop?booking_canceled=true',
+      })
     );
   });
 });

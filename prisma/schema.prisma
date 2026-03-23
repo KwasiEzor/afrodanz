@@ -28,6 +28,7 @@ model User {
   emailVerified DateTime?
   image         String?
   role          Role      @default(MEMBER)
+  supabaseUserId String?  @unique
 
   // Auth.js / NextAuth
   accounts Account[]

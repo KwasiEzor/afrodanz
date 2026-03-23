@@ -23,10 +23,12 @@ npm install
 ```bash
 DATABASE_URL=
 DIRECT_URL=
+AUTH_SECRET=
 NEXT_PUBLIC_APP_URL=
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
-AUTH_SECRET=
 AUTH_GOOGLE_ID=
 AUTH_GOOGLE_SECRET=
 AUTH_GITHUB_ID=
@@ -65,7 +67,11 @@ npm run db:seed
   The current Turbopack production build path is unstable in this environment when processing CSS.
 - Prisma schema operations use `DIRECT_URL`.
 - Runtime DB access uses `DATABASE_URL`.
-- `NEXT_PUBLIC_APP_URL` must be a valid absolute URL.
+- The app can derive its own URL from Vercel/request headers, but production deployments should still set `NEXT_PUBLIC_APP_URL`.
+
+## Deployment
+
+Deployment steps for Vercel + Supabase + Stripe are documented in [`DEPLOYMENT.md`](./DEPLOYMENT.md).
 
 ## Validation
 

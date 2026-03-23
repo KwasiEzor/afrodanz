@@ -161,7 +161,7 @@ export async function bookEvent(eventId: string) {
   });
 
   if (checkoutPayload.kind === 'paid') {
-    const appUrl = getRequiredAppUrl();
+    const appUrl = await getRequiredAppUrl();
 
     if (checkoutPayload.reusableCheckoutSessionId) {
       try {
@@ -252,7 +252,7 @@ export async function createSubscriptionSession(planName: string) {
     throw new Error('Invalid plan selected');
   }
 
-  const appUrl = getRequiredAppUrl();
+  const appUrl = await getRequiredAppUrl();
 
   const checkoutSession = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
