@@ -29,6 +29,13 @@ interface DashboardUIProps {
   bookings: BookingWithEvent[];
 }
 
+const MEMBER_NAV_LINKS = [
+  { href: '/', label: 'Home' },
+  { href: '/events', label: 'Events' },
+  { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
+] as const;
+
 function bannerFromSearchParams(searchParams: URLSearchParams): string | null {
   if (searchParams.get('booking_success')) {
     return 'Booking confirmed. Your spot is locked in.';
@@ -118,96 +125,149 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
         )}
       </AnimatePresence>
 
-      <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 pb-16 pt-24 md:px-6 lg:flex-row">
-        <aside className="site-panel flex flex-col rounded-[2.4rem] p-6 lg:w-72">
-          <Link href="/" className="mb-8">
-            <p className="site-kicker mb-3">Member portal</p>
-            <h1 className="site-title text-3xl font-black uppercase text-white">
-              Afro<span className="site-highlight">Danz</span>
-            </h1>
-          </Link>
-
-          <div className="site-panel-soft mb-8 rounded-[2rem] p-5">
-            <div className="flex items-center gap-4">
-              {user.image ? (
-                <Image
-                  src={user.image}
-                  alt={user.name || 'Member avatar'}
-                  width={56}
-                  height={56}
-                  className="rounded-2xl border border-white/10 object-cover"
-                />
-              ) : (
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/18 text-white">
-                  <User2 className="h-6 w-6" />
+      <div className="mx-auto max-w-7xl px-4 pb-16 pt-8 md:px-6">
+        <header className="site-panel mb-8 rounded-[2rem] px-5 py-5">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center justify-between gap-4">
+              <Link href="/" className="flex items-center gap-3 text-white">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/18 text-accent">
+                  <Sparkles className="h-5 w-5" />
                 </div>
-              )}
-              <div>
-                <p className="font-black uppercase tracking-[0.18em] text-white">
-                  {user.name?.split(' ')[0] || 'Dancer'}
-                </p>
-                <p className="mt-1 text-xs font-bold uppercase tracking-[0.18em] text-accent">
-                  {membershipLabel(user.subscriptionStatus)}
-                </p>
+                <div>
+                  <p className="display-type text-lg font-black uppercase tracking-[0.22em]">
+                    AfroDanz
+                  </p>
+                  <p className="text-[0.65rem] font-bold uppercase tracking-[0.22em] text-slate-400">
+                    Member Dashboard
+                  </p>
+                </div>
+              </Link>
+
+              <form action="/api/auth/signout" method="POST" className="lg:hidden">
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 p-3 text-red-300"
+                  aria-label="Logout"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </form>
+            </div>
+
+            <nav className="flex flex-wrap items-center gap-2">
+              {MEMBER_NAV_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="rounded-full border border-white/8 bg-white/5 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-slate-300 transition hover:border-primary/30 hover:text-white"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="hidden lg:flex lg:items-center lg:gap-3">
+              <Link
+                href="/events"
+                className="site-outline-button inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.22em] text-white"
+              >
+                Browse Events
+                <ExternalLink className="h-4 w-4" />
+              </Link>
+              <form action="/api/auth/signout" method="POST">
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-5 py-3 text-xs font-black uppercase tracking-[0.22em] text-red-300"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </form>
+            </div>
+          </div>
+        </header>
+
+        <div className="flex flex-col gap-8 lg:flex-row">
+          <aside className="site-panel flex flex-col rounded-[2.4rem] p-6 lg:w-72">
+            <Link href="/" className="mb-8">
+              <p className="site-kicker mb-3">Member portal</p>
+              <h1 className="site-title text-3xl font-black uppercase text-white">
+                Afro<span className="site-highlight">Danz</span>
+              </h1>
+            </Link>
+
+            <div className="site-panel-soft mb-8 rounded-[2rem] p-5">
+              <div className="flex items-center gap-4">
+                {user.image ? (
+                  <Image
+                    src={user.image}
+                    alt={user.name || 'Member avatar'}
+                    width={56}
+                    height={56}
+                    className="rounded-2xl border border-white/10 object-cover"
+                  />
+                ) : (
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/18 text-white">
+                    <User2 className="h-6 w-6" />
+                  </div>
+                )}
+                <div>
+                  <p className="font-black uppercase tracking-[0.18em] text-white">
+                    {user.name?.split(' ')[0] || 'Dancer'}
+                  </p>
+                  <p className="mt-1 text-xs font-bold uppercase tracking-[0.18em] text-accent">
+                    {membershipLabel(user.subscriptionStatus)}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <nav className="grid gap-2 md:grid-cols-4 lg:grid-cols-1">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-3 rounded-[1.2rem] px-4 py-3 text-left text-sm font-black uppercase tracking-[0.2em] ${
-                  activeTab === tab.id
-                    ? 'site-primary-button text-white'
-                    : 'text-slate-400 hover:bg-white/6 hover:text-white'
-                }`}
+            <nav className="grid gap-2 md:grid-cols-4 lg:grid-cols-1">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-3 rounded-[1.2rem] px-4 py-3 text-left text-sm font-black uppercase tracking-[0.2em] ${
+                    activeTab === tab.id
+                      ? 'site-primary-button text-white'
+                      : 'text-slate-400 hover:bg-white/6 hover:text-white'
+                  }`}
+                >
+                  <tab.icon className="h-4 w-4" />
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+
+            <div className="mt-8 flex flex-col gap-3 lg:hidden">
+              <Link
+                href="/events"
+                className="site-outline-button inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.22em] text-white"
               >
-                <tab.icon className="h-4 w-4" />
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-
-          <div className="mt-8 flex flex-col gap-3">
-            <Link
-              href="/events"
-              className="site-outline-button inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.22em] text-white"
-            >
-              Browse Events
-              <ExternalLink className="h-4 w-4" />
-            </Link>
-            <form action="/api/auth/signout" method="POST">
-              <button
-                type="submit"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-5 py-3 text-xs font-black uppercase tracking-[0.22em] text-red-300"
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </button>
-            </form>
-          </div>
-        </aside>
-
-        <div className="flex-1">
-          <header className="mb-8 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="site-kicker mb-4">Dashboard</p>
-              <h2 className="site-title text-4xl font-black uppercase text-white md:text-5xl">
-                Welcome Back
-                <span className="site-highlight block">
-                  {user.name?.split(' ')[0] || 'Dancer'}
-                </span>
-              </h2>
+                Browse Events
+                <ExternalLink className="h-4 w-4" />
+              </Link>
             </div>
-            <div className="site-panel-soft rounded-[1.6rem] px-5 py-4 text-sm text-slate-300">
-              <p className="font-black uppercase tracking-[0.2em] text-accent">Live status</p>
-              <p className="mt-2">
-                {upcomingBookings.length} upcoming booking{upcomingBookings.length === 1 ? '' : 's'} and €{(totalSpent / 100).toFixed(2)} spent so far.
-              </p>
-            </div>
-          </header>
+          </aside>
+
+          <div className="flex-1">
+            <header className="mb-8 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="site-kicker mb-4">Dashboard</p>
+                <h2 className="site-title text-4xl font-black uppercase text-white md:text-5xl">
+                  Welcome Back
+                  <span className="site-highlight block">
+                    {user.name?.split(' ')[0] || 'Dancer'}
+                  </span>
+                </h2>
+              </div>
+              <div className="site-panel-soft rounded-[1.6rem] px-5 py-4 text-sm text-slate-300">
+                <p className="font-black uppercase tracking-[0.2em] text-accent">Live status</p>
+                <p className="mt-2">
+                  {upcomingBookings.length} upcoming booking{upcomingBookings.length === 1 ? '' : 's'} and €{(totalSpent / 100).toFixed(2)} spent so far.
+                </p>
+              </div>
+            </header>
 
           {activeTab === 'overview' && (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
@@ -461,7 +521,31 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
               </section>
             </motion.div>
           )}
+          </div>
         </div>
+
+        <footer className="mt-10 border-t border-white/8 pt-8">
+          <div className="flex flex-col gap-4 text-sm text-slate-400 md:flex-row md:items-center md:justify-between">
+            <p>AfroDanz member area for bookings, subscriptions, and account support.</p>
+            <div className="flex flex-wrap items-center gap-4">
+              <Link href="/" className="transition hover:text-white">
+                Home
+              </Link>
+              <Link href="/events" className="transition hover:text-white">
+                Events
+              </Link>
+              <Link href="/contact" className="transition hover:text-white">
+                Support
+              </Link>
+              <Link href="/privacy" className="transition hover:text-white">
+                Privacy
+              </Link>
+              <Link href="/terms" className="transition hover:text-white">
+                Terms
+              </Link>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );

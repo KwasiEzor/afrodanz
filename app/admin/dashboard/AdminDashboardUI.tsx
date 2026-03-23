@@ -3,12 +3,14 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   Calendar,
   Edit,
   Euro,
   LayoutDashboard,
   Plus,
+  Sparkles,
   Trash,
   UserCheck,
   Users,
@@ -67,6 +69,13 @@ const TABS: Array<{ id: AdminTab; label: string; icon: typeof LayoutDashboard }>
   { id: 'events', label: 'Manage Events', icon: Calendar },
   { id: 'bookings', label: 'Bookings', icon: UserCheck },
 ];
+
+const ADMIN_NAV_LINKS = [
+  { href: '/', label: 'Home' },
+  { href: '/events', label: 'Events' },
+  { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
+] as const;
 
 export default function AdminDashboardUI({
   stats,
@@ -194,6 +203,37 @@ export default function AdminDashboardUI({
           </motion.div>
         )}
       </AnimatePresence>
+
+      <header className="site-panel mb-8 rounded-[2rem] px-5 py-5">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="flex items-center gap-3 text-white">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/18 text-accent">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="display-type text-lg font-black uppercase tracking-[0.22em]">
+                  AfroDanz
+                </p>
+                <p className="text-[0.65rem] font-bold uppercase tracking-[0.22em] text-slate-400">
+                  Admin Panel
+                </p>
+              </div>
+            </Link>
+          </div>
+          <nav className="flex flex-wrap items-center gap-2">
+            {ADMIN_NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="rounded-full border border-white/8 bg-white/5 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-slate-300 transition hover:border-primary/30 hover:text-white"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </header>
 
       <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 pb-16 pt-24 md:px-6 lg:flex-row">
         <aside className="site-panel flex flex-col rounded-[2.4rem] p-6 lg:w-72">
@@ -420,6 +460,29 @@ export default function AdminDashboardUI({
           )}
         </div>
       </div>
+
+      <footer className="mt-10 border-t border-white/8 pt-8">
+        <div className="flex flex-col gap-4 text-sm text-slate-400 md:flex-row md:items-center md:justify-between">
+          <p>Admin-level tools for members, revenue, and events.</p>
+          <div className="flex flex-wrap items-center gap-4">
+            <Link href="/" className="transition hover:text-white">
+              Home
+            </Link>
+            <Link href="/events" className="transition hover:text-white">
+              Events
+            </Link>
+            <Link href="/contact" className="transition hover:text-white">
+              Support
+            </Link>
+            <Link href="/privacy" className="transition hover:text-white">
+              Privacy
+            </Link>
+            <Link href="/terms" className="transition hover:text-white">
+              Terms
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
