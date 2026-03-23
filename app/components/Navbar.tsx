@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, Sparkles } from 'lucide-react';
+import { Menu, X, Sparkles, User, User2 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 const NAV_LINKS = [
   { name: 'Home', href: '/' },
@@ -17,6 +18,8 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const { status } = useSession();
+  const isAuthenticated = status === 'authenticated';
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 32);
@@ -82,6 +85,15 @@ export function Navbar() {
               })}
             </div>
 
+            {isAuthenticated && (
+              <Link
+                href="/dashboard"
+                className="site-panel-soft inline-flex items-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-white hover:border-primary/40"
+              >
+                <User2 className="h-4 w-4" />
+                Dashboard
+              </Link>
+            )}
             <Link
               href="/login"
               className="site-primary-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-white"
@@ -120,6 +132,16 @@ export function Navbar() {
                   {link.name}
                 </Link>
               ))}
+              {isAuthenticated && (
+                <Link
+                  href="/dashboard"
+                  onClick={() => setIsOpen(false)}
+                  className="site-panel-soft inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
+                >
+                  <User2 className="h-4 w-4" />
+                  Dashboard
+                </Link>
+              )}
               <Link
                 href="/login"
                 onClick={() => setIsOpen(false)}
