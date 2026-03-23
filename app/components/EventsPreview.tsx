@@ -6,43 +6,41 @@ import { useState } from 'react';
 import { bookEvent } from '@/app/actions/bookings';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
-const EVENTS = [
-  {
-    id: 'cl1',
-    slug: 'amapiano-workshop-march-2026',
-    title: 'Amapiano Workshop',
-    date: 'March 28, 2026',
-    time: '18:00 - 20:00',
-    location: 'Main Studio',
-    price: '€25',
-    category: 'Workshop'
-  },
-  {
-    id: 'cl2',
-    slug: 'afrobeats-mastery-april-2026',
-    title: 'Afrobeats Mastery',
-    date: 'April 02, 2026',
-    time: '19:00 - 21:00',
-    location: 'Outdoor Arena',
-    price: '€20',
-    category: 'Class'
-  },
-  {
-    id: 'cl3',
-    slug: 'afro-contemporary-april-2026',
-    title: 'Afro-Contemporary',
-    date: 'April 05, 2026',
-    time: '10:00 - 13:00',
-    location: 'Main Studio',
-    price: '€35',
-    category: 'Intensive'
-  }
-];
+const euroFormatter = new Intl.NumberFormat('en-GB', {
+  style: 'currency',
+  currency: 'EUR',
+});
 
-export function EventsPreview() {
+export type EventPreviewItem = {
+  id: string;
+  slug: string;
+  title: string;
+  date: string;
+  location: string;
+  price: number;
+  category: string;
+};
+
+interface EventsPreviewProps {
+  events: EventPreviewItem[];
+  title?: string;
+  description?: string;
+  emptyMessage?: string;
+}
+
+export function EventsPreview({
+  events,
+  title = 'Upcoming Events',
+  description = "Don't miss out on our special sessions and workshops.",
+  emptyMessage = 'Fresh workshops are on the way. Check back soon.',
+}: EventsPreviewProps) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const router = useRouter();
+  const titleParts = title.split(' ');
+  const highlightedWord = titleParts[titleParts.length - 1];
+  const leadingTitle = titleParts.slice(0, -1).join(' ');
 
   async function handleJoin(eventId: string) {
     setLoadingId(eventId);
@@ -55,7 +53,12 @@ export function EventsPreview() {
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Please log in to book events';
-      alert(message);
+      if (message.toLowerCase().includes('logged in')) {
+        toast.error('Please log in to secure your spot.');
+        router.push('/login');
+      } else {
+        toast.error(message);
+      }
     } finally {
       setLoadingId(null);
     }
@@ -70,65 +73,99 @@ export function EventsPreview() {
           viewport={{ once: true }}
           className="mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-black mb-4">Upcoming <span className="text-primary italic">Events</span></h2>
-          <p className="text-muted text-lg max-w-xl">Don&apos;t miss out on our special sessions and workshops.</p>
+          <h2 className="text-4xl md:text-5xl font-black mb-4">
+            {title.includes(' ') ? (
+              <>
+                {leadingTitle}{' '}
+                <span className="text-primary italic">{highlightedWord}</span>
+              </>
+            ) : (
+              <span className="text-primary italic">{title}</span>
+            )}
+          </h2>
+          <p className="text-muted text-lg max-w-xl">{description}</p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {EVENTS.map((event, index) => (
-            <motion.div
-              key={event.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="group bg-slate-100 dark:bg-slate-900/50 p-8 rounded-3xl border border-transparent hover:border-primary/20 transition-all hover:shadow-2xl hover:shadow-primary/5"
-            >
-              <div className="mb-6 flex justify-between items-start">
-                <span className="px-4 py-1 bg-accent/10 text-accent rounded-full text-sm font-bold uppercase tracking-wider">
-                  {event.category}
-                </span>
-                <span className="text-2xl font-black text-primary">{event.price}</span>
-              </div>
-              
-              <Link href={`/events/${event.slug}`} className="block group">
-                <h3 className="text-2xl font-bold mb-6 group-hover:text-primary transition-colors">{event.title}</h3>
-              </Link>
-              
-              <div className="space-y-4 text-muted mb-10">
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-5 h-5 text-primary" />
-                  <span>{event.date}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Clock className="w-5 h-5 text-primary" />
-                  <span>{event.time}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-primary" />
-                  <span>{event.location}</span>
-                </div>
-              </div>
+        {events.length > 0 ? (
+          <div className="grid md:grid-cols-3 gap-8">
+            {events.map((event, index) => {
+              const startsAt = new Date(event.date);
 
-              <motion.button
-                onClick={() => handleJoin(event.id)}
-                disabled={loadingId === event.id}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full py-4 bg-foreground text-background font-bold rounded-2xl group-hover:bg-primary group-hover:text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {loadingId === event.id ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  'Join Event'
-                )}
-              </motion.button>
-            </motion.div>
-          ))}
-        </div>
+              return (
+                <motion.div
+                  key={event.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="group bg-slate-100 dark:bg-slate-900/50 p-8 rounded-3xl border border-transparent hover:border-primary/20 transition-all hover:shadow-2xl hover:shadow-primary/5"
+                >
+                  <div className="mb-6 flex justify-between items-start">
+                    <span className="px-4 py-1 bg-accent/10 text-accent rounded-full text-sm font-bold uppercase tracking-wider">
+                      {event.category}
+                    </span>
+                    <span className="text-2xl font-black text-primary">
+                      {euroFormatter.format(event.price / 100)}
+                    </span>
+                  </div>
+                  
+                  <Link href={`/events/${event.slug}`} className="block group">
+                    <h3 className="text-2xl font-bold mb-6 group-hover:text-primary transition-colors">
+                      {event.title}
+                    </h3>
+                  </Link>
+                  
+                  <div className="space-y-4 text-muted mb-10">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="w-5 h-5 text-primary" />
+                      <span>
+                        {startsAt.toLocaleDateString('en-GB', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Clock className="w-5 h-5 text-primary" />
+                      <span>
+                        {startsAt.toLocaleTimeString('en-GB', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <MapPin className="w-5 h-5 text-primary" />
+                      <span>{event.location}</span>
+                    </div>
+                  </div>
+
+                  <motion.button
+                    onClick={() => handleJoin(event.id)}
+                    disabled={loadingId === event.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full py-4 bg-foreground text-background font-bold rounded-2xl group-hover:bg-primary group-hover:text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {loadingId === event.id ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      'Join Event'
+                    )}
+                  </motion.button>
+                </motion.div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rounded-[2rem] border border-dashed border-slate-200 bg-slate-50 px-8 py-16 text-center text-muted dark:border-slate-800 dark:bg-slate-900/50">
+            {emptyMessage}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -33,13 +33,13 @@ describe('Stripe Webhook', () => {
     };
 
     vi.mocked(stripe.webhooks.constructEvent).mockReturnValue(
-      mockSession as ReturnType<typeof stripe.webhooks.constructEvent>
+      mockSession as unknown as ReturnType<typeof stripe.webhooks.constructEvent>
     );
 
     vi.mocked(prisma.booking.findUnique).mockResolvedValue({
       id: 'booking_1',
       event: { price: 2500 },
-    } as Awaited<ReturnType<typeof prisma.booking.findUnique>>);
+    } as unknown as Awaited<ReturnType<typeof prisma.booking.findUnique>>);
 
     const req = new Request('http://localhost', {
       method: 'POST',
@@ -70,7 +70,7 @@ describe('Stripe Webhook', () => {
     };
 
     vi.mocked(stripe.webhooks.constructEvent).mockReturnValue(
-      mockEvent as ReturnType<typeof stripe.webhooks.constructEvent>
+      mockEvent as unknown as ReturnType<typeof stripe.webhooks.constructEvent>
     );
 
     const req = new Request('http://localhost', {

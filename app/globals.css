@@ -1,4 +1,3 @@
-/* Relative to this file so resolution does not use the parent-folder lockfile (projets-web). */
 @import "../node_modules/tailwindcss/index.css";
 
 :root {

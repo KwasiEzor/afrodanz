@@ -2,12 +2,48 @@ import { Hero } from './components/Hero';
 import { EventsPreview } from './components/EventsPreview';
 import { Pricing } from './components/Pricing';
 import Link from 'next/link';
+import prisma from '@/lib/prisma';
+import { isPrismaMissingTableError } from '@/lib/prisma-errors';
 
-export default function Home() {
+export default async function Home() {
+  let featuredEvents: Awaited<ReturnType<typeof prisma.event.findMany>> = [];
+
+  try {
+    featuredEvents = await prisma.event.findMany({
+      where: {
+        date: {
+          gte: new Date(),
+        },
+      },
+      orderBy: {
+        date: 'asc',
+      },
+      take: 3,
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        date: true,
+        location: true,
+        price: true,
+        category: true,
+      },
+    });
+  } catch (error) {
+    if (!isPrismaMissingTableError(error, 'Event')) {
+      throw error;
+    }
+  }
+
+  const previewEvents = featuredEvents.map((event) => ({
+    ...event,
+    date: event.date.toISOString(),
+  }));
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between">
+    <div className="flex min-h-screen flex-col items-center justify-between">
       <Hero />
-      <EventsPreview />
+      <EventsPreview events={previewEvents} />
       <Pricing />
       
       {/* Subscription Section CTA */}
@@ -31,13 +67,13 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <span className="text-2xl font-black tracking-tighter">AFRO <span className="text-primary">DANZ</span></span>
           <div className="flex gap-8 text-sm font-bold uppercase tracking-widest text-muted">
-            <a href="#" className="hover:text-primary transition-colors">Privacy</a>
-            <a href="#" className="hover:text-primary transition-colors">Terms</a>
-            <a href="#" className="hover:text-primary transition-colors">Contact</a>
+            <Link href="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-primary transition-colors">Terms</Link>
+            <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
           </div>
           <p className="text-muted text-sm">© 2026 AfroDanz Studio. All rights reserved.</p>
         </div>
       </footer>
-    </main>
+    </div>
   );
 }

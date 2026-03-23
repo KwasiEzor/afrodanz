@@ -22,7 +22,7 @@ describe('bookEvent Server Action', () => {
   it('should fail if event is fully booked including pending bookings', async () => {
     vi.mocked(auth).mockResolvedValue({
       user: { id: 'user_1', email: 'test@test.com' },
-    } as Awaited<ReturnType<typeof auth>>);
+    } as unknown as Awaited<ReturnType<typeof auth>>);
 
     vi.mocked(prisma.event.findUnique).mockResolvedValue({
       id: 'event_1',
@@ -30,7 +30,7 @@ describe('bookEvent Server Action', () => {
       capacity: 10,
       price: 2500,
       _count: { bookings: 9 },
-    } as Awaited<ReturnType<typeof prisma.event.findUnique>>);
+    } as unknown as Awaited<ReturnType<typeof prisma.event.findUnique>>);
 
     vi.mocked(prisma.booking.count).mockResolvedValue(1);
 
@@ -40,7 +40,7 @@ describe('bookEvent Server Action', () => {
   it('should allow booking if pending bookings are expired', async () => {
     vi.mocked(auth).mockResolvedValue({
       user: { id: 'user_1', email: 'test@test.com' },
-    } as Awaited<ReturnType<typeof auth>>);
+    } as unknown as Awaited<ReturnType<typeof auth>>);
 
     vi.mocked(prisma.event.findUnique).mockResolvedValue({
       id: 'event_1',
@@ -51,17 +51,17 @@ describe('bookEvent Server Action', () => {
       category: 'Workshop',
       location: 'Studio',
       _count: { bookings: 9 },
-    } as Awaited<ReturnType<typeof prisma.event.findUnique>>);
+    } as unknown as Awaited<ReturnType<typeof prisma.event.findUnique>>);
 
     vi.mocked(prisma.booking.count).mockResolvedValue(0);
     vi.mocked(prisma.booking.findFirst).mockResolvedValue(null);
     vi.mocked(prisma.booking.create).mockResolvedValue({
       id: 'booking_1',
-    } as Awaited<ReturnType<typeof prisma.booking.create>>);
+    } as unknown as Awaited<ReturnType<typeof prisma.booking.create>>);
 
     vi.mocked(stripe.checkout.sessions.create).mockResolvedValue({
       url: 'http://stripe.com',
-    } as Awaited<ReturnType<typeof stripe.checkout.sessions.create>>);
+    } as unknown as Awaited<ReturnType<typeof stripe.checkout.sessions.create>>);
 
     const result = await bookEvent('event_1');
     expect(result.url).toBe('http://stripe.com');

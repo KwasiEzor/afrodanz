@@ -6,29 +6,73 @@ import Link from 'next/link';
 import { EventsPreview } from '@/app/components/EventsPreview';
 import { auth } from '@/lib/auth';
 import { BookingButton } from '@/app/components/BookingButton';
+import { isPrismaMissingTableError } from '@/lib/prisma-errors';
 
 export const dynamic = 'force-dynamic';
 
-export default async function EventDetailPage({ params }: { params: { slug: string } }) {
+export default async function EventDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const session = await auth();
-  
-  const event = await prisma.event.findUnique({
-    where: { slug: params.slug },
-    include: {
-      bookings: {
-        where: { status: 'PAID' },
-      },
-      _count: {
-        select: {
-          bookings: {
-            where: { status: 'PAID' },
+  const { slug } = await params;
+
+  let event: Awaited<ReturnType<typeof prisma.event.findUnique>>;
+
+  try {
+    event = await prisma.event.findUnique({
+      where: { slug },
+      include: {
+        bookings: {
+          where: { status: 'PAID' },
+        },
+        _count: {
+          select: {
+            bookings: {
+              where: { status: 'PAID' },
+            },
           },
         },
       },
-    },
-  });
+    });
+  } catch (error) {
+    if (isPrismaMissingTableError(error, 'Event')) {
+      notFound();
+    }
+
+    throw error;
+  }
 
   if (!event) notFound();
+
+  let relatedEvents: Awaited<ReturnType<typeof prisma.event.findMany>> = [];
+
+  try {
+    relatedEvents = await prisma.event.findMany({
+      where: {
+        id: {
+          not: event.id,
+        },
+        date: {
+          gte: new Date(),
+        },
+      },
+      orderBy: {
+        date: 'asc',
+      },
+      take: 3,
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        date: true,
+        location: true,
+        price: true,
+        category: true,
+      },
+    });
+  } catch (error) {
+    if (!isPrismaMissingTableError(error, 'Event')) {
+      throw error;
+    }
+  }
 
   const activePendingOthers = await prisma.booking.count({
     where: {
@@ -43,6 +87,10 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
 
   const spotsLeft = event.capacity - event._count.bookings - activePendingOthers;
   const alreadyBooked = session?.user ? event.bookings.some(b => b.userId === session.user?.id) : false;
+  const previewEvents = relatedEvents.map((relatedEvent) => ({
+    ...relatedEvent,
+    date: relatedEvent.date.toISOString(),
+  }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -56,7 +104,7 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
         </div>
       </nav>
 
-      <main className="pt-24 pb-24 px-6">
+      <div className="pt-24 pb-24 px-6">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12">
           {/* Visual Column */}
           <div className="space-y-8">
@@ -131,13 +179,18 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
             </div>
           </div>
         </div>
-      </main>
+      </div>
 
       {/* More Events */}
       <section className="bg-slate-50 dark:bg-slate-900/30 py-24">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-black uppercase tracking-tight mb-12">Other <span className="text-primary italic">Ateliers</span> You&apos;ll Love</h2>
-          <EventsPreview />
+          <EventsPreview
+            events={previewEvents}
+            title="More Events"
+            description="Keep the momentum going with more upcoming workshops from the studio."
+            emptyMessage="This is the last upcoming event on the calendar for now."
+          />
         </div>
       </section>
     </div>

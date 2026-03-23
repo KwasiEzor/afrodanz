@@ -1,19 +1,21 @@
+import path from "node:path";
 import type { NextConfig } from "next";
-import path from "path";
-import { fileURLToPath } from "url";
-
-// Pin Turbopack root to this app (not the parent folder with a stray lockfile).
-// `process.cwd()` can still resolve `tailwindcss` from the wrong `package.json` in dev.
-const appRoot = path.dirname(fileURLToPath(import.meta.url));
-const tailwindEntry = path.join(appRoot, "node_modules/tailwindcss/index.css");
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: path.resolve(__dirname),
   turbopack: {
-    root: appRoot,
-    resolveAlias: {
-      // Bare import "tailwindcss" (e.g. from tooling) → app install, not parent monorepo root
-      tailwindcss: tailwindEntry,
-    },
+    // This app lives under a parent folder that also has a package-lock.json.
+    // Pin Turbopack's root to this app so CSS/module resolution doesn't escape
+    // to /Users/macbook/projets-web and fail to resolve this app's dependencies.
+    root: path.resolve(__dirname),
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+    ],
   },
 };
 

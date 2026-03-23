@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { EventsList } from '../components/EventsList';
+import { isPrismaMissingTableError } from '@/lib/prisma-errors';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -8,11 +9,12 @@ export const dynamic = 'force-dynamic';
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const page = typeof searchParams.page === 'string' ? parseInt(searchParams.page) : 1;
-  const category = typeof searchParams.category === 'string' ? searchParams.category : undefined;
-  const search = typeof searchParams.search === 'string' ? searchParams.search : undefined;
+  const resolvedSearchParams = await searchParams;
+  const page = typeof resolvedSearchParams.page === 'string' ? parseInt(resolvedSearchParams.page) : 1;
+  const category = typeof resolvedSearchParams.category === 'string' ? resolvedSearchParams.category : undefined;
+  const search = typeof resolvedSearchParams.search === 'string' ? resolvedSearchParams.search : undefined;
 
   const where = {
     ...(category && { category }),
@@ -24,15 +26,24 @@ export default async function EventsPage({
     }),
   };
 
-  const [events, totalEvents] = await Promise.all([
-    prisma.event.findMany({
-      where,
-      skip: (page - 1) * ITEMS_PER_PAGE,
-      take: ITEMS_PER_PAGE,
-      orderBy: { date: 'asc' },
-    }),
-    prisma.event.count({ where }),
-  ]);
+  let events: Awaited<ReturnType<typeof prisma.event.findMany>> = [];
+  let totalEvents = 0;
+
+  try {
+    [events, totalEvents] = await Promise.all([
+      prisma.event.findMany({
+        where,
+        skip: (page - 1) * ITEMS_PER_PAGE,
+        take: ITEMS_PER_PAGE,
+        orderBy: { date: 'asc' },
+      }),
+      prisma.event.count({ where }),
+    ]);
+  } catch (error) {
+    if (!isPrismaMissingTableError(error, 'Event')) {
+      throw error;
+    }
+  }
 
   const totalPages = Math.ceil(totalEvents / ITEMS_PER_PAGE);
 

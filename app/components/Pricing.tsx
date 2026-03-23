@@ -5,6 +5,7 @@ import { Check } from 'lucide-react';
 import { useState } from 'react';
 import { createSubscriptionSession } from '@/app/actions/bookings';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const PLANS = [
   {
@@ -65,9 +66,10 @@ export function Pricing() {
       console.error(error);
       const message = error instanceof Error ? error.message : '';
       if (message.includes('logged in')) {
+        toast.error('Please log in to start a membership.');
         router.push('/login');
       } else {
-        alert('Failed to start subscription. Please try again.');
+        toast.error('Failed to start subscription. Please try again.');
       }
     } finally {
       setLoadingPlan(null);
@@ -107,7 +109,7 @@ export function Pricing() {
             >
               {plan.popular && (
                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-full">
-                  Most Popular
+                  Popular
                 </span>
               )}
 

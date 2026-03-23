@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export function Hero() {
   return (
@@ -35,20 +36,30 @@ export function Hero() {
           </p>
           
           <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
-            <motion.button
+            <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-primary text-white font-bold rounded-full text-lg shadow-xl afro-gradient hover:brightness-110 transition-all w-full md:w-auto"
+              className="w-full md:w-auto"
             >
-              Start Dancing Now
-            </motion.button>
-            <motion.button
+              <Link
+                href="/events"
+                className="block px-8 py-4 bg-primary text-white font-bold rounded-full text-lg shadow-xl afro-gradient hover:brightness-110 transition-all text-center"
+              >
+                Book a Workshop
+              </Link>
+            </motion.div>
+            <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 border-2 border-white/30 text-white font-bold rounded-full text-lg backdrop-blur-md hover:bg-white/10 transition-all w-full md:w-auto"
+              className="w-full md:w-auto"
             >
-              Explore Events
-            </motion.button>
+              <Link
+                href="/contact"
+                className="block px-8 py-4 border-2 border-white/30 text-white font-bold rounded-full text-lg backdrop-blur-md hover:bg-white/10 transition-all text-center"
+              >
+                Plan Your Visit
+              </Link>
+            </motion.div>
           </div>
         </motion.div>
       </div>

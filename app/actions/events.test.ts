@@ -10,7 +10,7 @@ describe('createEvent Server Action', () => {
   it('should fail if user is not an admin', async () => {
     vi.mocked(auth).mockResolvedValue({
       user: { role: 'MEMBER' },
-    } as Awaited<ReturnType<typeof auth>>);
+    } as unknown as Awaited<ReturnType<typeof auth>>);
     
     const formData = new FormData();
     formData.append('title', 'Test Event');
@@ -21,7 +21,7 @@ describe('createEvent Server Action', () => {
   it('should fail if price is negative', async () => {
     vi.mocked(auth).mockResolvedValue({
       user: { role: 'ADMIN' },
-    } as Awaited<ReturnType<typeof auth>>);
+    } as unknown as Awaited<ReturnType<typeof auth>>);
     
     const formData = new FormData();
     formData.append('title', 'Test Event');
@@ -39,7 +39,7 @@ describe('createEvent Server Action', () => {
   it('should fail if capacity is negative or zero', async () => {
     vi.mocked(auth).mockResolvedValue({
       user: { role: 'ADMIN' },
-    } as Awaited<ReturnType<typeof auth>>);
+    } as unknown as Awaited<ReturnType<typeof auth>>);
     
     const formData = new FormData();
     formData.append('title', 'Test Event');
