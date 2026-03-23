@@ -176,3 +176,22 @@ npx tsc --noEmit
 npm test -- --run
 npm run build
 ```
+
+## 10. GitHub Actions Deployment
+
+The repository includes [` .github/workflows/vercel-deploy.yml`](/Users/macbook/projets-web/afrodanz/.github/workflows/vercel-deploy.yml), which:
+
+- runs on every push to `main`
+- also supports manual redeploy from GitHub Actions via `workflow_dispatch`
+- validates with lint, typecheck, tests, and build before deploying
+- deploys to Vercel production with the Vercel CLI
+
+Add these GitHub repository secrets before enabling the workflow:
+
+```bash
+VERCEL_TOKEN=
+VERCEL_ORG_ID=
+VERCEL_PROJECT_ID=
+```
+
+You can find `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` from a linked Vercel project or the Vercel project settings.
