@@ -50,6 +50,13 @@ export async function bookEvent(eventId: string) {
   const now = new Date();
 
   const checkoutPayload = await prisma.$transaction(async (tx) => {
+    // Acquire a row-level lock on the event to prevent concurrent overbooking.
+    // Two requests checking capacity simultaneously could both pass the count
+    // check; locking the event row serializes those checks.
+    await tx.$queryRawUnsafe(
+      'SELECT id FROM "Event" WHERE id = $1 FOR UPDATE',
+      eventId
+    );
     const [event, existingBooking] = await Promise.all([
       tx.event.findUnique({
         where: { id: eventId },

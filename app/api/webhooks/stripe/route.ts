@@ -107,6 +107,12 @@ async function expireBookingHold(session: Stripe.Checkout.Session) {
 }
 
 export async function POST(req: Request) {
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    console.error('Stripe webhook: STRIPE_WEBHOOK_SECRET is not configured');
+    return new NextResponse('Webhook not configured', { status: 500 });
+  }
+
   const body = await req.text();
   const signature = (await headers()).get('Stripe-Signature');
   if (!signature) {
@@ -119,7 +125,7 @@ export async function POST(req: Request) {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      webhookSecret
     );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
@@ -140,11 +146,29 @@ export async function POST(req: Request) {
             break;
           }
 
+          const subscriptionId =
+            typeof session.subscription === 'string'
+              ? session.subscription
+              : session.subscription?.id;
+          const customerId =
+            typeof session.customer === 'string'
+              ? session.customer
+              : session.customer?.id;
+
+          if (!subscriptionId || !customerId) {
+            console.error('Stripe webhook: missing subscription or customer id', {
+              sessionId: session.id,
+              subscription: session.subscription,
+              customer: session.customer,
+            });
+            break;
+          }
+
           await prisma.user.update({
             where: { id: userId },
             data: {
-              stripeSubscriptionId: session.subscription as string,
-              stripeCustomerId: session.customer as string,
+              stripeSubscriptionId: subscriptionId,
+              stripeCustomerId: customerId,
               subscriptionStatus: SubscriptionStatus.ACTIVE,
             },
           });

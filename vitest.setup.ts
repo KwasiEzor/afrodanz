@@ -22,6 +22,7 @@ vi.mock('@prisma/client', () => ({
 
 const prismaMock = {
   $transaction: vi.fn((cb) => cb(prismaMock)),
+  $queryRawUnsafe: vi.fn().mockResolvedValue([]),
   event: {
     create: vi.fn(),
     update: vi.fn(),
