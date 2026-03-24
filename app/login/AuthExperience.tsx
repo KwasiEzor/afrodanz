@@ -133,7 +133,7 @@ export function AuthExperience({
         email: parsed.data.email,
         password: parsed.data.password,
         redirect: false,
-        redirectTo: '/dashboard',
+        callbackUrl: '/dashboard',
       });
 
       if (result?.ok && result.url) {
@@ -534,7 +534,7 @@ export function AuthExperience({
                     <button
                       key={provider.id}
                       type="button"
-                      onClick={() => signIn(provider.id, { redirectTo: '/dashboard' })}
+                      onClick={() => signIn(provider.id, { callbackUrl: '/dashboard' })}
                       className={`flex w-full items-center justify-center gap-4 rounded-2xl py-4 font-bold text-white ${
                         provider.id === 'github'
                           ? 'site-primary-button'

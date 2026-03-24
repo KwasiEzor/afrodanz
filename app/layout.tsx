@@ -5,6 +5,7 @@ import "./globals.css";
 import { Navbar } from "./components/Navbar";
 import { Providers } from "./providers";
 import { Toaster } from 'sonner';
+import { CookieBanner } from "./components/CookieBanner";
 
 const themeStyle = {
   "--background": theme.colors.navajowhite["950"],
@@ -94,6 +95,7 @@ export default function RootLayout({
           </main>
         </Providers>
         <Toaster richColors position="top-right" />
+        <CookieBanner />
       </body>
     </html>
   );

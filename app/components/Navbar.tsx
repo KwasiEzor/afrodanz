@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Sparkles, User, User2 } from 'lucide-react';
+import { LogOut, Menu, X, Sparkles, User, User2 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 
 const NAV_LINKS = [
   { name: 'Home', href: '/' },
@@ -18,8 +18,12 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  const { status } = useSession();
-  const isAuthenticated = status === 'authenticated';
+  const { data: session, status } = useSession();
+  const isAuthenticated = Boolean(session?.user) && status === 'authenticated';
+
+  const handleSignOut = () => {
+    signOut({ callbackUrl: '/' });
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 32);
@@ -85,22 +89,34 @@ export function Navbar() {
               })}
             </div>
 
-            {isAuthenticated && (
+            {isAuthenticated ? (
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/dashboard"
+                  className="site-panel-soft inline-flex items-center justify-center rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-white hover:border-primary/40"
+                  aria-label="Open member dashboard"
+                >
+                  <User2 className="h-4 w-4" />
+                  <span className="sr-only">Dashboard</span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="site-outline-button inline-flex items-center justify-center rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-white"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="sr-only">Sign Out</span>
+                </button>
+              </div>
+            ) : (
               <Link
-                href="/dashboard"
-                className="site-panel-soft inline-flex items-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-white hover:border-primary/40"
+                href="/login"
+                className="site-primary-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-white"
               >
-                <User2 className="h-4 w-4" />
-                Dashboard
+                <User className="h-4 w-4" />
+                Portal
               </Link>
             )}
-            <Link
-              href="/login"
-              className="site-primary-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-white"
-            >
-              <User className="h-4 w-4" />
-              Portal
-            </Link>
           </div>
 
           <button
@@ -132,24 +148,38 @@ export function Navbar() {
                   {link.name}
                 </Link>
               ))}
-              {isAuthenticated && (
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setIsOpen(false)}
+                    className="site-panel-soft inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
+                  >
+                    <User2 className="h-4 w-4" />
+                    Dashboard
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOpen(false);
+                      handleSignOut();
+                    }}
+                    className="site-outline-button mt-2 inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </button>
+                </>
+              ) : (
                 <Link
-                  href="/dashboard"
+                  href="/login"
                   onClick={() => setIsOpen(false)}
-                  className="site-panel-soft inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
+                  className="site-primary-button mt-2 inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
                 >
-                  <User2 className="h-4 w-4" />
-                  Dashboard
+                  <User className="h-4 w-4" />
+                  Member Portal
                 </Link>
               )}
-              <Link
-                href="/login"
-                onClick={() => setIsOpen(false)}
-                className="site-primary-button mt-2 inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
-              >
-                <User className="h-4 w-4" />
-                Member Portal
-              </Link>
             </div>
           </motion.div>
         )}

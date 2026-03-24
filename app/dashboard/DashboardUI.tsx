@@ -18,6 +18,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import type { Booking, Event, SubscriptionStatus } from '@prisma/client';
 
@@ -98,6 +99,10 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
     },
   ];
 
+  const handleSignOut = () => {
+    signOut({ callbackUrl: '/' });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <AnimatePresence>
@@ -143,15 +148,14 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                 </div>
               </Link>
 
-              <form action="/api/auth/signout" method="POST" className="lg:hidden">
-                <button
-                  type="submit"
-                  className="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 p-3 text-red-300"
-                  aria-label="Logout"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </form>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="lg:hidden inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 p-3 text-red-300"
+                aria-label="Logout"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
 
             <nav className="flex flex-wrap items-center gap-2">
@@ -174,15 +178,14 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                 Browse Events
                 <ExternalLink className="h-4 w-4" />
               </Link>
-              <form action="/api/auth/signout" method="POST">
-                <button
-                  type="submit"
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-5 py-3 text-xs font-black uppercase tracking-[0.22em] text-red-300"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Logout
-                </button>
-              </form>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-5 py-3 text-xs font-black uppercase tracking-[0.22em] text-red-300"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
             </div>
           </div>
         </header>

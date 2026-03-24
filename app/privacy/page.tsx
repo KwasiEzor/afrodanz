@@ -43,6 +43,17 @@ export default function PrivacyPage() {
             Contact AfroDanz
           </Link>
         </section>
+
+        <section className="site-panel-soft rounded-[2.8rem] px-8 py-10 md:px-12">
+          <h2 className="site-title text-3xl font-black uppercase text-white md:text-4xl">
+            Cookies & <span className="site-highlight">Consent</span>
+          </h2>
+          <p className="mt-4 max-w-2xl text-slate-300">
+            Essential cookies keep the platform secure and functional. Analytics cookies help us improve the experience,
+            and marketing cookies power promotions only when you consent. Use the cookie preferences button in the bottom
+            corner to review or change your choices at any time.
+          </p>
+        </section>
       </div>
     </div>
   );
