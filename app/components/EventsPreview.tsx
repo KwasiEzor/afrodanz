@@ -7,6 +7,7 @@ import { bookEvent } from '@/app/actions/bookings';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { useTranslation } from '@/lib/locale-context';
 
 const euroFormatter = new Intl.NumberFormat('en-GB', {
   style: 'currency',
@@ -32,13 +33,17 @@ interface EventsPreviewProps {
 
 export function EventsPreview({
   events,
-  title = 'Upcoming Events',
-  description = "Don't miss out on our special sessions and workshops.",
-  emptyMessage = 'Fresh workshops are on the way. Check back soon.',
+  title,
+  description,
+  emptyMessage,
 }: EventsPreviewProps) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const router = useRouter();
-  const titleParts = title.split(' ');
+  const t = useTranslation();
+  const resolvedTitle = title ?? t('events.defaultTitle');
+  const resolvedDescription = description ?? t('events.description');
+  const resolvedEmptyMessage = emptyMessage ?? t('events.empty');
+  const titleParts = resolvedTitle.split(' ');
   const highlightedWord = titleParts[titleParts.length - 1];
   const leadingTitle = titleParts.slice(0, -1).join(' ');
 
@@ -52,9 +57,10 @@ export function EventsPreview({
         router.push('/dashboard?booking_success=true');
       }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Please log in to book events';
+      const loginMessage = t('events.loginNeeded');
+      const message = error instanceof Error ? error.message : loginMessage;
       if (message.toLowerCase().includes('logged in')) {
-        toast.error('Please log in to secure your spot.');
+        toast.error(loginMessage);
         router.push('/login');
       } else {
         toast.error(message);
@@ -74,25 +80,25 @@ export function EventsPreview({
           className="mb-14 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between"
         >
           <div className="max-w-2xl">
-            <p className="site-kicker mb-4">Upcoming calendar</p>
+            <p className="site-kicker mb-4">{t('events.kicker')}</p>
             <h2 className="site-title text-3xl font-black uppercase text-white md:text-5xl">
-              {title.includes(' ') ? (
+              {resolvedTitle.includes(' ') ? (
                 <>
                   {leadingTitle}{' '}
                   <span className="site-highlight">{highlightedWord}</span>
                 </>
               ) : (
-                <span className="site-highlight">{title}</span>
+                <span className="site-highlight">{resolvedTitle}</span>
               )}
             </h2>
-            <p className="mt-4 max-w-xl text-lg leading-8 text-slate-400">{description}</p>
+            <p className="mt-4 max-w-xl text-lg leading-8 text-slate-400">{resolvedDescription}</p>
           </div>
 
           <Link
             href="/events"
             className="site-outline-button inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-xs font-black uppercase tracking-[0.24em] text-white"
           >
-            Browse all events
+            {t('events.browse')}
             <ArrowUpRight className="h-4 w-4" />
           </Link>
         </motion.div>
@@ -168,11 +174,11 @@ export function EventsPreview({
                       {loadingId === event.id ? (
                         <>
                           <Loader2 className="h-5 w-5 animate-spin" />
-                          Processing
+                          {t('events.processing')}
                         </>
                       ) : (
                         <>
-                          Join Event
+                          {t('events.join')}
                           <ArrowUpRight className="h-4 w-4" />
                         </>
                       )}
@@ -184,7 +190,7 @@ export function EventsPreview({
           </div>
         ) : (
           <div className="site-panel rounded-[2.4rem] px-8 py-16 text-center text-slate-400">
-            {emptyMessage}
+            {resolvedEmptyMessage}
           </div>
         )}
       </div>

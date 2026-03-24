@@ -6,6 +6,7 @@ import { Navbar } from "./components/Navbar";
 import { Providers } from "./providers";
 import { Toaster } from 'sonner';
 import { CookieBanner } from "./components/CookieBanner";
+import { getServerLocale } from "@/lib/locale.server";
 
 const themeStyle = {
   "--background": theme.colors.navajowhite["950"],
@@ -74,11 +75,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialLocale = await getServerLocale();
   return (
     <html lang="en" className="scroll-smooth">
       <body
@@ -88,7 +90,7 @@ export default function RootLayout({
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-primary focus:text-white">
           Skip to content
         </a>
-        <Providers>
+        <Providers initialLocale={initialLocale}>
           <Navbar />
           <main id="main-content">
             {children}

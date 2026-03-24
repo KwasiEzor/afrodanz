@@ -31,7 +31,7 @@ async function markBookingPaid(session: Stripe.Checkout.Session) {
 
   if (!booking) {
     console.error('Stripe webhook: booking not found', bookingId);
-    return;
+    throw new Error(`Booking not found: ${bookingId}`);
   }
 
   if (booking.status === BookingStatus.PAID) {
@@ -126,79 +126,85 @@ export async function POST(req: Request) {
     return new NextResponse(`Webhook Error: ${message}`, { status: 400 });
   }
 
-  switch (event.type) {
-    case 'checkout.session.completed': {
-      const session = event.data.object as Stripe.Checkout.Session;
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
 
-      if (session.mode === 'payment') {
-        await markBookingPaid(session);
-      } else if (session.mode === 'subscription') {
-        const userId = session.metadata?.userId;
+        if (session.mode === 'payment') {
+          await markBookingPaid(session);
+        } else if (session.mode === 'subscription') {
+          const userId = session.metadata?.userId;
 
-        if (!userId) {
-          break;
+          if (!userId) {
+            break;
+          }
+
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              stripeSubscriptionId: session.subscription as string,
+              stripeCustomerId: session.customer as string,
+              subscriptionStatus: SubscriptionStatus.ACTIVE,
+            },
+          });
         }
+        break;
+      }
 
+      case 'checkout.session.expired': {
+        await expireBookingHold(event.data.object as Stripe.Checkout.Session);
+        break;
+      }
+
+      case 'customer.subscription.deleted': {
+        const subscriptionDeleted = event.data.object as Stripe.Subscription;
         await prisma.user.update({
-          where: { id: userId },
+          where: { stripeSubscriptionId: subscriptionDeleted.id },
           data: {
-            stripeSubscriptionId: session.subscription as string,
-            stripeCustomerId: session.customer as string,
-            subscriptionStatus: SubscriptionStatus.ACTIVE,
+            subscriptionStatus: SubscriptionStatus.CANCELED,
           },
         });
+        break;
       }
-      break;
-    }
 
-    case 'checkout.session.expired': {
-      await expireBookingHold(event.data.object as Stripe.Checkout.Session);
-      break;
-    }
-
-    case 'customer.subscription.deleted': {
-      const subscriptionDeleted = event.data.object as Stripe.Subscription;
-      await prisma.user.update({
-        where: { stripeSubscriptionId: subscriptionDeleted.id },
-        data: {
-          subscriptionStatus: SubscriptionStatus.CANCELED,
-        },
-      });
-      break;
-    }
-
-    case 'customer.subscription.updated': {
-      const subscriptionUpdated = event.data.object as Stripe.Subscription;
-      const nextStatus = subscriptionStatusFromStripe(subscriptionUpdated.status);
-      if (nextStatus) {
-        await prisma.user.update({
-          where: { stripeSubscriptionId: subscriptionUpdated.id },
-          data: {
-            subscriptionStatus: nextStatus,
-          },
-        });
+      case 'customer.subscription.updated': {
+        const subscriptionUpdated = event.data.object as Stripe.Subscription;
+        const nextStatus = subscriptionStatusFromStripe(subscriptionUpdated.status);
+        if (nextStatus) {
+          await prisma.user.update({
+            where: { stripeSubscriptionId: subscriptionUpdated.id },
+            data: {
+              subscriptionStatus: nextStatus,
+            },
+          });
+        }
+        break;
       }
-      break;
-    }
 
-    case 'invoice.payment_failed': {
-      const invoiceFailed = event.data.object as Stripe.Invoice & {
-        subscription?: string | Stripe.Subscription | null;
-      };
-      const subId =
-        typeof invoiceFailed.subscription === 'string'
-          ? invoiceFailed.subscription
-          : invoiceFailed.subscription?.id;
-      if (subId) {
-        await prisma.user.update({
-          where: { stripeSubscriptionId: subId },
-          data: {
-            subscriptionStatus: SubscriptionStatus.PAST_DUE,
-          },
-        });
+      case 'invoice.payment_failed': {
+        const invoiceFailed = event.data.object as Stripe.Invoice & {
+          subscription?: string | Stripe.Subscription | null;
+        };
+        const subId =
+          typeof invoiceFailed.subscription === 'string'
+            ? invoiceFailed.subscription
+            : invoiceFailed.subscription?.id;
+        if (subId) {
+          await prisma.user.update({
+            where: { stripeSubscriptionId: subId },
+            data: {
+              subscriptionStatus: SubscriptionStatus.PAST_DUE,
+            },
+          });
+        }
+        break;
       }
-      break;
     }
+  } catch (error) {
+    console.error('Stripe webhook handler error:', error);
+    const message = error instanceof Error ? error.message : 'Internal error';
+    return new NextResponse(message, { status: 500 });
   }
 
   return new NextResponse(null, { status: 200 });

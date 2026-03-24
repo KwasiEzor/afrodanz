@@ -112,7 +112,7 @@ model Booking {
   status  BookingStatus @default(PENDING)
 
   user  User  @relation(fields: [userId], references: [id])
-  event Event @relation(fields: [eventId], references: [id])
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   stripeCheckoutSessionId String?   @unique
   stripePaymentIntentId   String?   @unique

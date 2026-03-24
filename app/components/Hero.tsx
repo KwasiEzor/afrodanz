@@ -4,14 +4,17 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowUpRight, Play, Sparkles } from 'lucide-react';
+import { useTranslation } from '@/lib/locale-context';
 
 const STATS = [
-  { value: '12+', label: 'weekly sessions' },
-  { value: '350+', label: 'active dancers' },
-  { value: '4.9', label: 'member rating' },
+  { value: '12+', labelKey: 'hero.stats.weekly' },
+  { value: '350+', labelKey: 'hero.stats.dancers' },
+  { value: '4.9', labelKey: 'hero.stats.rating' },
 ];
 
 export function Hero() {
+  const t = useTranslation();
+
   return (
     <section className="relative isolate overflow-hidden px-4 pb-16 pt-32 md:px-6 md:pb-24 md:pt-36">
       <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_top_left,rgba(124,58,237,0.28),transparent_28rem),radial-gradient(circle_at_85%_22%,rgba(236,72,153,0.18),transparent_24rem)]" />
@@ -25,16 +28,14 @@ export function Hero() {
             transition={{ duration: 0.8, ease: 'easeOut' }}
             className="max-w-3xl"
           >
-            <p className="site-kicker mb-5">Neon Afro Movement</p>
+            <p className="site-kicker mb-5">{t('hero.kicker')}</p>
             <h1 className="site-title text-4xl font-black uppercase leading-[0.9] text-white sm:text-5xl md:text-6xl lg:text-7xl">
-              Feel The
-              <span className="site-highlight block">Beat Before</span>
-              The Drop
+              {t('hero.title.part1')}
+              <span className="site-highlight block">{t('hero.title.highlight')}</span>
+              {t('hero.title.part3')}
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300 md:text-xl">
-              AfroDanz brings high-energy Afro classes, contemporary workshops, and
-              membership experiences into one cinematic studio world built for dancers
-              who want more than a standard timetable.
+              {t('hero.description')}
             </p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -42,7 +43,7 @@ export function Hero() {
                 href="/events"
                 className="site-primary-button inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
               >
-                Book a Session
+                {t('hero.book')}
                 <ArrowUpRight className="h-4 w-4" />
               </Link>
               <Link
@@ -50,16 +51,16 @@ export function Hero() {
                 className="site-outline-button inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
               >
                 <Play className="h-4 w-4" />
-                Explore the Studio
+                {t('hero.explore')}
               </Link>
             </div>
 
             <div className="mt-12 grid gap-4 sm:grid-cols-3">
               {STATS.map((item) => (
-                <div key={item.label} className="site-panel-soft rounded-[1.75rem] px-5 py-6">
+                <div key={item.labelKey} className="site-panel-soft rounded-[1.75rem] px-5 py-6">
                   <p className="display-type text-3xl font-black text-white">{item.value}</p>
                   <p className="mt-2 text-xs font-black uppercase tracking-[0.24em] text-slate-400">
-                    {item.label}
+                    {t(item.labelKey)}
                   </p>
                 </div>
               ))}
@@ -83,18 +84,18 @@ export function Hero() {
             />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,10,18,0.08),rgba(7,10,18,0.78))]" />
             <div className="absolute left-6 top-6 rounded-full border border-white/14 bg-black/30 px-4 py-2 text-[0.65rem] font-black uppercase tracking-[0.3em] text-slate-100 backdrop-blur-md">
-              Spring Residency
+              {t('hero.residencyBadge')}
             </div>
             <div className="absolute bottom-6 left-6 right-6 rounded-[2rem] border border-white/10 bg-[#0d1120]/82 p-5 backdrop-blur-xl">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="site-kicker mb-2">Featured Intensive</p>
+                  <p className="site-kicker mb-2">{t('hero.featuredKicker')}</p>
                   <h2 className="site-title text-2xl font-black text-white">
-                    Afro Fusion Lab
+                    {t('hero.featuredTitle')}
                   </h2>
                 </div>
                 <span className="rounded-full border border-accent/30 bg-accent/12 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-accent">
-                  Live Now
+                  {t('hero.featuredStatus')}
                 </span>
               </div>
             </div>
@@ -105,10 +106,10 @@ export function Hero() {
               <Sparkles className="h-5 w-5" />
             </div>
             <p className="text-sm font-black uppercase tracking-[0.22em] text-white">
-              Member Perks
+              {t('hero.perksTitle')}
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-400">
-              Priority booking, curated workshops, and late-night community jams.
+              {t('hero.perksBody')}
             </p>
           </div>
         </motion.div>

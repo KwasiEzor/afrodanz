@@ -8,28 +8,24 @@ import {
   isPrismaDatabaseUnavailableError,
   isPrismaMissingTableError,
 } from '@/lib/prisma-errors';
-
-const PLATFORM_PILLARS = [
-  {
-    icon: Sparkles,
-    label: 'Creative direction',
-    body: 'Signature classes, themed workshops, and visual worlds that feel curated instead of generic.',
-  },
-  {
-    icon: CalendarDays,
-    label: 'Live calendar',
-    body: 'Weekly drops, limited-capacity intensives, and a booking flow built around momentum.',
-  },
-  {
-    icon: Headphones,
-    label: 'Member energy',
-    body: 'A studio culture that blends training, music, and a social atmosphere into one experience.',
-  },
-];
+import { getCopy, translate } from '@/lib/i18n';
+import { getServerLocale } from '@/lib/locale.server';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
+  const locale = await getServerLocale();
+  const t = (path: string) => translate(locale, path);
+  const pillarCopy = (getCopy(locale, 'platform.pillars') ?? []) as Array<{
+    label: string;
+    body: string;
+  }>;
+  const pillarIcons = [Sparkles, CalendarDays, Headphones];
+  const platformPillars = pillarCopy.map((item, index) => ({
+    icon: pillarIcons[index] ?? Sparkles,
+    ...item,
+  }));
+
   const getFeaturedEvents = () =>
     prisma.event.findMany({
       where: {
@@ -76,7 +72,7 @@ export default async function Home() {
 
       <section className="px-4 pb-6 md:px-6">
         <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-3">
-          {PLATFORM_PILLARS.map((pillar) => (
+          {platformPillars.map((pillar) => (
             <article key={pillar.label} className="site-panel-soft rounded-[2rem] p-8">
               <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 text-primary">
                 <pillar.icon className="h-5 w-5" />
@@ -90,10 +86,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <EventsPreview
-        events={previewEvents}
-        description="The next wave of Afro sessions, intensives, and workshops currently on the calendar."
-      />
+      <EventsPreview events={previewEvents} />
       <Pricing />
 
       <section className="px-4 py-24 md:px-6">
@@ -103,13 +96,13 @@ export default async function Home() {
 
           <div className="relative flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
-              <p className="site-kicker mb-4">Membership drop</p>
+              <p className="site-kicker mb-4">{t('membership.kicker')}</p>
               <h2 className="site-title text-3xl font-black uppercase text-white md:text-5xl">
-                Move Like You Mean It
-                <span className="site-highlight block">Every Single Week</span>
+                {t('membership.title')}
+                <span className="site-highlight block">{t('membership.highlight')}</span>
               </h2>
               <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-300">
-                Join the membership flow for priority booking, signature classes, and community sessions that keep the energy alive between workshops.
+                {t('membership.description')}
               </p>
             </div>
 
@@ -118,14 +111,14 @@ export default async function Home() {
                 href="#pricing"
                 className="site-primary-button inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
               >
-                Choose a Plan
+                {t('membership.planButton')}
                 <ArrowUpRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/contact"
                 className="site-outline-button inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
               >
-                Talk to the Team
+                {t('membership.talkButton')}
               </Link>
             </div>
           </div>
@@ -138,16 +131,14 @@ export default async function Home() {
             <p className="display-type text-2xl font-black uppercase tracking-[0.24em] text-white">
               AfroDanz
             </p>
-            <p className="mt-2 text-sm text-slate-400">
-              Cinematic Afro dance classes, workshops, and memberships from Paris.
-            </p>
+            <p className="mt-2 text-sm text-slate-400">{t('footer.description')}</p>
           </div>
           <div className="flex flex-wrap gap-6 text-xs font-black uppercase tracking-[0.24em] text-slate-400">
-            <Link href="/privacy" className="hover:text-white">Privacy</Link>
-            <Link href="/terms" className="hover:text-white">Terms</Link>
-            <Link href="/contact" className="hover:text-white">Contact</Link>
+            <Link href="/privacy" className="hover:text-white">{t('footer.privacy')}</Link>
+            <Link href="/terms" className="hover:text-white">{t('footer.terms')}</Link>
+            <Link href="/contact" className="hover:text-white">{t('footer.contact')}</Link>
           </div>
-          <p className="text-sm text-slate-500">© 2026 AfroDanz Studio</p>
+          <p className="text-sm text-slate-500">{t('footer.copyright')}</p>
         </div>
       </footer>
     </div>

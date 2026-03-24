@@ -6,12 +6,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, Menu, X, Sparkles, User, User2 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
+import { useLocale, useTranslation } from '@/lib/locale-context';
 
 const NAV_LINKS = [
-  { name: 'Home', href: '/' },
-  { name: 'Events', href: '/events' },
-  { name: 'About', href: '/about' },
-  { name: 'Contact', href: '/contact' },
+  { key: 'nav.home', href: '/' },
+  { key: 'nav.events', href: '/events' },
+  { key: 'nav.about', href: '/about' },
+  { key: 'nav.contact', href: '/contact' },
 ];
 
 export function Navbar() {
@@ -20,6 +21,10 @@ export function Navbar() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const isAuthenticated = Boolean(session?.user) && status === 'authenticated';
+  const { locale, setLocale } = useLocale();
+  const t = useTranslation();
+  const switchLocale = () => setLocale(locale === 'fr' ? 'en' : 'fr');
+  const localeFlag = locale === 'fr' ? '🇬🇧' : '🇫🇷';
 
   const handleSignOut = () => {
     signOut({ callbackUrl: '/' });
@@ -75,7 +80,7 @@ export function Navbar() {
 
                 return (
                   <Link
-                    key={link.name}
+                    key={link.key}
                     href={link.href}
                     className={`rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.24em] ${
                       isActive
@@ -83,7 +88,7 @@ export function Navbar() {
                         : 'text-slate-300 hover:text-white'
                     }`}
                   >
-                    {link.name}
+                      {t(link.key)}
                   </Link>
                 );
               })}
@@ -94,10 +99,10 @@ export function Navbar() {
                 <Link
                   href="/dashboard"
                   className="site-panel-soft inline-flex items-center justify-center rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-white hover:border-primary/40"
-                  aria-label="Open member dashboard"
+                  aria-label={t('dashboard')}
                 >
                   <User2 className="h-4 w-4" />
-                  <span className="sr-only">Dashboard</span>
+                  <span className="sr-only">{t('dashboard')}</span>
                 </Link>
                 <button
                   type="button"
@@ -105,7 +110,7 @@ export function Navbar() {
                   className="site-outline-button inline-flex items-center justify-center rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-white"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span className="sr-only">Sign Out</span>
+                  <span className="sr-only">{t('signOut')}</span>
                 </button>
               </div>
             ) : (
@@ -114,9 +119,17 @@ export function Navbar() {
                 className="site-primary-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-white"
               >
                 <User className="h-4 w-4" />
-                Portal
+                {t('portal')}
               </Link>
             )}
+            <button
+              type="button"
+              onClick={switchLocale}
+              className="rounded-full border border-white/10 px-4 py-3 text-sm font-black uppercase tracking-[0.22em] text-white"
+              aria-label={t('languageToggle')}
+            >
+              {localeFlag}
+            </button>
           </div>
 
           <button
@@ -140,12 +153,12 @@ export function Navbar() {
             <div className="flex flex-col gap-3">
               {NAV_LINKS.map((link) => (
                 <Link
-                  key={link.name}
+                  key={link.key}
                   href={link.href}
                   onClick={() => setIsOpen(false)}
                   className="rounded-2xl border border-white/6 bg-white/4 px-5 py-4 text-sm font-black uppercase tracking-[0.24em] text-slate-200"
                 >
-                  {link.name}
+                  {t(link.key)}
                 </Link>
               ))}
               {isAuthenticated ? (
@@ -156,7 +169,7 @@ export function Navbar() {
                     className="site-panel-soft inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
                   >
                     <User2 className="h-4 w-4" />
-                    Dashboard
+                    {t('dashboard')}
                   </Link>
                   <button
                     type="button"
@@ -167,7 +180,7 @@ export function Navbar() {
                     className="site-outline-button mt-2 inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
                   >
                     <LogOut className="h-4 w-4" />
-                    Sign Out
+                    {t('signOut')}
                   </button>
                 </>
               ) : (
@@ -177,9 +190,20 @@ export function Navbar() {
                   className="site-primary-button mt-2 inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
                 >
                   <User className="h-4 w-4" />
-                  Member Portal
+                  {t('portal')}
                 </Link>
               )}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  switchLocale();
+                }}
+                className="site-outline-button mt-2 inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
+              >
+                <span>{localeFlag}</span>
+                <span>{t('languageToggle')}</span>
+              </button>
             </div>
           </motion.div>
         )}

@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { Send, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { sendContactMessage } from '@/app/actions/contact';
+import { useTranslation } from '@/lib/locale-context';
 
 export function ContactForm() {
+  const t = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSent, setIsSent] = useState(false);
 
@@ -31,9 +33,9 @@ export function ContactForm() {
       <div className="absolute -bottom-10 left-0 h-48 w-48 rounded-full bg-primary/14 blur-3xl" />
 
       <div className="relative">
-        <p className="site-kicker mb-4">Direct line</p>
+        <p className="site-kicker mb-4">{t('contactForm.kicker')}</p>
         <h2 className="site-title text-4xl font-black uppercase text-white">
-          Send a <span className="site-highlight">Message</span>
+          {t('contactForm.title')}
         </h2>
       </div>
 
@@ -48,10 +50,10 @@ export function ContactForm() {
           >
             <CheckCircle2 className="h-20 w-20 text-emerald-400" />
             <h3 className="mt-5 text-2xl font-black uppercase tracking-[0.2em] text-white">
-              Message Sent
+              {t('contactForm.successTitle')}
             </h3>
             <p className="mt-3 max-w-md text-slate-400">
-              We&apos;ll reply with the next steps, class info, or membership guidance as soon as possible.
+              {t('contactForm.successBody')}
             </p>
           </motion.div>
         ) : (
@@ -65,9 +67,9 @@ export function ContactForm() {
           >
             <div className="grid gap-6 sm:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">
-                  First Name
-                </label>
+        <label className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">
+          {t('contactForm.firstName')}
+        </label>
                 <input
                   required
                   name="firstName"
@@ -75,9 +77,9 @@ export function ContactForm() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">
-                  Last Name
-                </label>
+              <label className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">
+                {t('contactForm.lastName')}
+              </label>
                 <input
                   required
                   name="lastName"
@@ -88,7 +90,7 @@ export function ContactForm() {
 
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">
-                Email Address
+                {t('contactForm.email')}
               </label>
               <input
                 required
@@ -100,7 +102,7 @@ export function ContactForm() {
 
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">
-                Message
+                {t('contactForm.message')}
               </label>
               <textarea
                 required
@@ -115,7 +117,7 @@ export function ContactForm() {
               disabled={isSubmitting}
               className="site-primary-button inline-flex w-full items-center justify-center gap-3 rounded-full px-6 py-4 text-sm font-black uppercase tracking-[0.24em] text-white disabled:opacity-50"
             >
-              {isSubmitting ? 'Sending' : 'Send Message'}
+              {isSubmitting ? t('contactForm.sending') : t('contactForm.send')}
               {!isSubmitting && <Send className="h-4 w-4" />}
             </button>
           </motion.form>

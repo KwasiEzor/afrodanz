@@ -2,28 +2,24 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Globe, Heart, Sparkles, Star, Users } from 'lucide-react';
 import prisma from '@/lib/prisma';
-
-const VALUES = [
-  {
-    icon: Users,
-    title: 'Community First',
-    body: 'We build rooms where dancers feel seen, challenged, and connected from the first beat.',
-  },
-  {
-    icon: Star,
-    title: 'High Standards',
-    body: 'Curated teachers, intentional choreography, and an elevated studio atmosphere every week.',
-  },
-  {
-    icon: Globe,
-    title: 'Cultural Respect',
-    body: 'The studio experience stays grounded in the music, movement, and roots that shaped it.',
-  },
-];
+import { getCopy, translate } from '@/lib/i18n';
+import { getServerLocale } from '@/lib/locale.server';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AboutPage() {
+  const locale = await getServerLocale();
+  const t = (path: string) => translate(locale, path);
+  const valueItems = (getCopy(locale, 'about.values') ?? []) as Array<{
+    title: string;
+    body: string;
+  }>;
+  const valueIcons = [Users, Star, Globe];
+  const valuesWithIcons = valueItems.map((item, index) => ({
+    icon: valueIcons[index] ?? Users,
+    ...item,
+  }));
+
   const instructors = await prisma.user.findMany({
     where: { role: 'ADMIN' },
     select: { name: true, image: true, id: true },
@@ -34,28 +30,32 @@ export default async function AboutPage() {
       <section className="px-4 md:px-6">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
-            <p className="site-kicker mb-4">Studio story</p>
-            <h1 className="site-title text-4xl font-black uppercase leading-[0.92] text-white md:text-6xl">
-              More Than
-              <span className="site-highlight block">A Dance Class</span>
-            </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-              AfroDanz was built as a movement space for dancers who want technique, culture, music, and atmosphere in the same room. We mix immersive training with community energy and a visual identity that feels alive.
-            </p>
+          <p className="site-kicker mb-4">{t('about.kicker')}</p>
+          <h1 className="site-title text-4xl font-black uppercase leading-[0.92] text-white md:text-6xl">
+            {t('about.title')}
+            <span className="site-highlight block">{t('about.titleHighlight')}</span>
+          </h1>
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+            {t('about.description')}
+          </p>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-2">
               <div className="site-panel-soft rounded-[1.8rem] p-6">
                 <Heart className="mb-4 h-6 w-6 text-secondary" />
-                <h2 className="display-type text-2xl font-black uppercase text-white">Driven by passion</h2>
+                <h2 className="display-type text-2xl font-black uppercase text-white">
+                  {t('about.cards.passion.title')}
+                </h2>
                 <p className="mt-3 text-sm leading-7 text-slate-400">
-                  Every workshop is designed to feel intentional, energetic, and rooted in real movement culture.
+                  {t('about.cards.passion.body')}
                 </p>
               </div>
               <div className="site-panel-soft rounded-[1.8rem] p-6">
                 <Sparkles className="mb-4 h-6 w-6 text-accent" />
-                <h2 className="display-type text-2xl font-black uppercase text-white">Designed to stand out</h2>
+                <h2 className="display-type text-2xl font-black uppercase text-white">
+                  {t('about.cards.design.title')}
+                </h2>
                 <p className="mt-3 text-sm leading-7 text-slate-400">
-                  Visual storytelling, music curation, and choreography all work together inside the studio experience.
+                  {t('about.cards.design.body')}
                 </p>
               </div>
             </div>
@@ -83,7 +83,7 @@ export default async function AboutPage() {
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
-            {VALUES.map((value) => (
+            {valuesWithIcons.map((value) => (
               <article key={value.title} className="site-panel-soft rounded-[2rem] p-8">
                 <value.icon className="mb-5 h-8 w-8 text-primary" />
                 <h3 className="display-type text-2xl font-black uppercase text-white">
@@ -99,9 +99,9 @@ export default async function AboutPage() {
       <section className="px-4 md:px-6">
         <div className="mx-auto max-w-7xl">
           <div className="mb-12">
-            <p className="site-kicker mb-4">Creative leads</p>
+            <p className="site-kicker mb-4">{t('about.instructors.kicker')}</p>
             <h2 className="site-title text-3xl font-black uppercase text-white md:text-5xl">
-              Master <span className="site-highlight">Instructors</span>
+              {t('about.instructors.title')}
             </h2>
           </div>
 
@@ -120,13 +120,13 @@ export default async function AboutPage() {
                   {instructor.name || 'Instructor'}
                 </h3>
                 <p className="mt-2 text-xs font-black uppercase tracking-[0.24em] text-accent">
-                  Master Choreographer
+                  {t('about.instructors.subtitle')}
                 </p>
               </div>
             ))}
             {instructors.length === 0 && (
               <div className="site-panel col-span-full rounded-[2.4rem] px-8 py-16 text-center text-slate-400">
-                Our team is currently preparing for the next season. Stay tuned.
+                {t('about.instructors.fallback')}
               </div>
             )}
           </div>
@@ -135,25 +135,25 @@ export default async function AboutPage() {
 
       <section className="px-4 py-24 md:px-6">
         <div className="site-panel mx-auto flex max-w-5xl flex-col gap-8 rounded-[2.8rem] px-8 py-12 text-center md:px-12">
-          <p className="site-kicker">Ready for the room</p>
+          <p className="site-kicker">{t('about.ready.kicker')}</p>
           <h2 className="site-title text-3xl font-black uppercase text-white md:text-5xl">
-            Step Into the <span className="site-highlight">Next Session</span>
+            {t('about.ready.title')}
           </h2>
           <p className="mx-auto max-w-2xl text-lg leading-8 text-slate-300">
-            Join the next workshop and feel the energy of AfroDanz in person.
+            {t('about.ready.description')}
           </p>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Link
               href="/events"
               className="site-primary-button rounded-full px-7 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
             >
-              Explore Workshops
+              {t('about.ready.explore')}
             </Link>
             <Link
               href="/contact"
               className="site-outline-button rounded-full px-7 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
             >
-              Contact the Studio
+              {t('about.ready.contact')}
             </Link>
           </div>
         </div>
