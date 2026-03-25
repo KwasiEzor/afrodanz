@@ -3,7 +3,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { Link2 } from 'lucide-react';
+import { Cookie } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -173,10 +173,10 @@ export function CookieBanner() {
       {showManageTrigger && (
         <button
           onClick={() => setShowPanel(true)}
-          className="fixed bottom-6 right-6 z-[120] flex items-center gap-2 rounded-full border border-white/10 bg-black/60 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white shadow-lg backdrop-blur-lg"
+          className="fixed bottom-6 right-6 z-[120] flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white shadow-lg backdrop-blur-lg transition hover:border-primary/40 hover:bg-black/80"
+          aria-label={prefButtonLabel}
         >
-          <Link2 className="h-4 w-4" />
-          {prefButtonLabel}
+          <Cookie className="h-4 w-4" />
         </button>
       )}
     </>
