@@ -163,6 +163,8 @@ export default async function EventDetailPage({
                 src={event.image || '/page_facbook_kouami_atelier_danse_africaine.jpg'}
                 alt={event.title}
                 fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,10,18,0.08),rgba(8,10,18,0.72))]" />

@@ -72,6 +72,7 @@ export default async function AboutPage() {
               src="/page_facbook_kouami_atelier_danse_africaine.jpg"
               alt="AfroDanz community"
               fill
+              priority
               sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover"
             />
