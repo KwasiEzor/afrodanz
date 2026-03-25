@@ -76,7 +76,7 @@ export async function signInWithSupabaseEmailPassword(input: {
 }
 
 export function getSupabaseAuthUserName(user: SupabaseUser) {
-  const metadataName = user.user_metadata.name;
+  const metadataName = user.user_metadata?.name;
 
   return typeof metadataName === "string" && metadataName.trim().length > 0
     ? metadataName.trim()

@@ -54,7 +54,7 @@ export function LocaleProvider({
     }
 
     window.localStorage.setItem(STORAGE_KEY, locale);
-    document.cookie = `${COOKIE_NAME}=${locale}; path=/; max-age=${COOKIE_MAX_AGE};`;
+    document.cookie = `${COOKIE_NAME}=${locale}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
   }, [locale]);
 
   const contextValue = useMemo(

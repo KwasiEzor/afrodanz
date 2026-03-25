@@ -10,6 +10,7 @@ import {
 } from '@/app/components/EventsPreview';
 import { BookingButton } from '@/app/components/BookingButton';
 import { isPrismaMissingTableError } from '@/lib/prisma-errors';
+import { formatDateLong, formatTime, formatPrice } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
@@ -105,8 +106,6 @@ export default async function EventDetailPage({
     date: relatedEvent.date.toISOString(),
   }));
 
-  const formattedDate = new Date(event.date);
-
   return (
     <div className="min-h-screen pb-24 pt-24">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
@@ -171,21 +170,14 @@ export default async function EventDetailPage({
                 <Calendar className="mb-3 h-5 w-5 text-secondary" />
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">Date</p>
                 <p className="mt-2 font-bold text-white">
-                  {formattedDate.toLocaleDateString('en-GB', {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'long',
-                  })}
+                  {formatDateLong(event.date)}
                 </p>
               </div>
               <div className="site-panel-soft rounded-[1.8rem] p-5">
                 <Clock className="mb-3 h-5 w-5 text-secondary" />
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">Time</p>
                 <p className="mt-2 font-bold text-white">
-                  {formattedDate.toLocaleTimeString('en-GB', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {formatTime(event.date)}
                 </p>
               </div>
               <div className="site-panel-soft rounded-[1.8rem] p-5">
@@ -210,7 +202,7 @@ export default async function EventDetailPage({
                   Total Price
                 </p>
                 <p className="display-type mt-2 text-5xl font-black text-white">
-                  €{event.price / 100}
+                  {formatPrice(event.price)}
                 </p>
               </div>
               <BookingButton

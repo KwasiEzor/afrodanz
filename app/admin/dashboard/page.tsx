@@ -13,7 +13,7 @@ export default async function AdminDashboard() {
   }
 
   // Fetch Stats
-  const [totalMembers, activeEventsCount, paidBookings] = await Promise.all([
+  const [totalMembers, activeEventsCount, revenueResult] = await Promise.all([
     prisma.user.count({
       where: {
         role: 'MEMBER',
@@ -26,21 +26,15 @@ export default async function AdminDashboard() {
         },
       },
     }),
-    prisma.booking.findMany({
-      where: {
-        status: 'PAID',
-      },
-      include: {
-        event: {
-          select: {
-            price: true,
-          },
-        },
-      },
-    }),
+    prisma.$queryRaw<[{ total: bigint | null }]>`
+      SELECT COALESCE(SUM(e.price), 0) AS total
+      FROM "Booking" b
+      JOIN "Event" e ON e.id = b."eventId"
+      WHERE b.status = 'PAID'
+    `,
   ]);
 
-  const revenue = paidBookings.reduce((acc, booking) => acc + booking.event.price, 0);
+  const revenue = Number(revenueResult[0]?.total ?? 0);
 
   // Fetch Recent Bookings
   const recentBookings = await prisma.booking.findMany({
@@ -64,8 +58,9 @@ export default async function AdminDashboard() {
     },
   });
 
-  // Fetch All Events for Management
+  // Fetch Events for Management (paginated)
   const allEvents = await prisma.event.findMany({
+    take: 50,
     orderBy: {
       date: 'desc',
     },

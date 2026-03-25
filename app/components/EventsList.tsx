@@ -1,10 +1,12 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, Search, ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
+import { Calendar, Loader2, MapPin, Search, ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
-import { useDeferredValue, useEffect, useState } from 'react';
+import { useDeferredValue, useEffect, useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { formatPrice, formatDateCompact } from '@/lib/format';
+import { useTranslation } from '@/lib/locale-context';
 
 interface Event {
   id: string;
@@ -26,8 +28,10 @@ interface EventsListProps {
 export function EventsList({ initialEvents, totalPages, currentPage }: EventsListProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslation();
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const deferredSearch = useDeferredValue(search);
+  const [isPending, startTransition] = useTransition();
 
   const handleFilterChange = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -37,13 +41,17 @@ export function EventsList({ initialEvents, totalPages, currentPage }: EventsLis
       params.delete(key);
     }
     params.set('page', '1');
-    router.push(`/events?${params.toString()}`);
+    startTransition(() => {
+      router.push(`/events?${params.toString()}`);
+    });
   };
 
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', page.toString());
-    router.push(`/events?${params.toString()}`);
+    startTransition(() => {
+      router.push(`/events?${params.toString()}`);
+    });
   };
 
   useEffect(() => {
@@ -60,7 +68,9 @@ export function EventsList({ initialEvents, totalPages, currentPage }: EventsLis
         params.delete('search');
       }
       params.set('page', '1');
-      router.push(`/events?${params.toString()}`);
+      startTransition(() => {
+        router.push(`/events?${params.toString()}`);
+      });
     }, 250);
 
     return () => window.clearTimeout(timeoutId);
@@ -73,7 +83,7 @@ export function EventsList({ initialEvents, totalPages, currentPage }: EventsLis
           <Search className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
           <input
             type="text"
-            placeholder="Search workshops, instructors, or vibes..."
+            placeholder={t('events.searchPlaceholder')}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             className="w-full rounded-full border border-white/8 bg-white/5 py-4 pl-14 pr-5 text-sm text-white outline-none placeholder:text-slate-500 focus:border-accent/40"
@@ -85,14 +95,20 @@ export function EventsList({ initialEvents, totalPages, currentPage }: EventsLis
           onChange={(event) => handleFilterChange('category', event.target.value)}
           className="rounded-full border border-white/8 bg-white/5 px-6 py-4 text-sm font-black uppercase tracking-[0.2em] text-white outline-none"
         >
-          <option value="">All Categories</option>
+          <option value="">{t('events.allCategories')}</option>
           <option value="Workshop">Workshop</option>
           <option value="Class">Class</option>
           <option value="Intensive">Intensive</option>
         </select>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+      {isPending && (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
+
+      <div className={`grid gap-8 md:grid-cols-2 xl:grid-cols-3${isPending ? ' opacity-50 pointer-events-none' : ''}`}>
         <AnimatePresence mode="popLayout">
           {initialEvents.map((event, index) => (
             <motion.article
@@ -111,7 +127,7 @@ export function EventsList({ initialEvents, totalPages, currentPage }: EventsLis
                     {event.category}
                   </span>
                   <span className="rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm font-black text-white backdrop-blur-sm">
-                    €{event.price / 100}
+                    {formatPrice(event.price)}
                   </span>
                 </div>
 
@@ -128,7 +144,7 @@ export function EventsList({ initialEvents, totalPages, currentPage }: EventsLis
                 <div className="space-y-4 text-sm text-slate-400">
                   <div className="flex items-center gap-3">
                     <Calendar className="h-4 w-4 text-secondary" />
-                    <span>{new Date(event.date).toLocaleDateString('en-GB')}</span>
+                    <span>{formatDateCompact(event.date)}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <MapPin className="h-4 w-4 text-secondary" />
@@ -142,7 +158,7 @@ export function EventsList({ initialEvents, totalPages, currentPage }: EventsLis
                   href={`/events/${event.slug}`}
                   className="site-outline-button inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-4 text-sm font-black uppercase tracking-[0.24em] text-white"
                 >
-                  View Details
+                  {t('events.viewDetails')}
                   <ArrowUpRight className="h-4 w-4" />
                 </Link>
               </div>
@@ -190,7 +206,7 @@ export function EventsList({ initialEvents, totalPages, currentPage }: EventsLis
       {initialEvents.length === 0 && (
         <div className="site-panel rounded-[2.6rem] px-8 py-20 text-center">
           <p className="text-xl font-light text-slate-400">
-            No workshops found matching your current filters.
+            {t('events.noResults')}
           </p>
         </div>
       )}

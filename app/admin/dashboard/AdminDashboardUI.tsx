@@ -22,6 +22,7 @@ import {
   type EditableEventFields,
 } from '@/app/components/admin/CreateEventForm';
 import { deleteEvent } from '@/app/actions/events';
+import { formatPrice, formatDateCompact } from '@/lib/format';
 
 type AdminUserPreview = {
   name: string | null;
@@ -105,7 +106,7 @@ export default function AdminDashboardUI({
     },
     {
       label: 'Revenue',
-      value: `€${(stats.revenue / 100).toFixed(2)}`,
+      value: formatPrice(stats.revenue),
       icon: Euro,
     },
     {
@@ -193,7 +194,7 @@ export default function AdminDashboardUI({
                         <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
                           Booked On
                         </p>
-                        <p className="mt-2">{new Date(booking.createdAt).toLocaleDateString('en-GB')}</p>
+                        <p className="mt-2">{formatDateCompact(booking.createdAt)}</p>
                       </div>
                     </div>
                   ))
@@ -236,7 +237,7 @@ export default function AdminDashboardUI({
       </header>
 
       <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 pb-16 pt-24 md:px-6 lg:flex-row">
-        <aside className="site-panel flex flex-col rounded-[2.4rem] p-6 lg:w-72">
+        <aside className="site-panel flex min-w-0 flex-col rounded-[2.4rem] p-6 lg:w-72 lg:shrink-0">
           <div className="mb-8">
             <p className="site-kicker mb-3">Admin control</p>
             <h1 className="site-title text-3xl font-black uppercase text-white">
@@ -255,8 +256,8 @@ export default function AdminDashboardUI({
                     : 'text-slate-400 hover:bg-white/6 hover:text-white'
                 }`}
               >
-                <tab.icon className="h-4 w-4" />
-                {tab.label}
+                <tab.icon className="h-4 w-4 shrink-0" />
+                <span className="truncate">{tab.label}</span>
               </button>
             ))}
           </nav>
@@ -325,7 +326,7 @@ export default function AdminDashboardUI({
                         </div>
                         <div>
                           <p className="font-bold text-white">{booking.event.title}</p>
-                          <p className="mt-1 text-sm text-slate-400">€{(booking.event.price / 100).toFixed(2)}</p>
+                          <p className="mt-1 text-sm text-slate-400">{formatPrice(booking.event.price)}</p>
                         </div>
                         <div className="text-left md:text-right">
                           <span
@@ -338,7 +339,7 @@ export default function AdminDashboardUI({
                             {booking.status}
                           </span>
                           <p className="mt-2 text-sm text-slate-500">
-                            {new Date(booking.createdAt).toLocaleDateString('en-GB')}
+                            {formatDateCompact(booking.createdAt)}
                           </p>
                         </div>
                       </div>
@@ -379,11 +380,11 @@ export default function AdminDashboardUI({
                             {event.title}
                           </h4>
                           <p className="mt-2 text-sm text-slate-400">
-                            {new Date(event.date).toLocaleDateString('en-GB')} • {event.location}
+                            {formatDateCompact(event.date)} • {event.location}
                           </p>
                         </div>
                         <div className="flex flex-col gap-2 text-sm text-slate-400">
-                          <p><span className="font-bold text-white">€{(event.price / 100).toFixed(2)}</span></p>
+                          <p><span className="font-bold text-white">{formatPrice(event.price)}</span></p>
                           <p>{event._count.bookings} / {event.capacity} booked</p>
                         </div>
                         <div className="flex gap-2">
@@ -439,7 +440,7 @@ export default function AdminDashboardUI({
                         <div>
                           <p className="font-bold text-white">{booking.event.title}</p>
                           <p className="mt-1 text-sm text-slate-400">
-                            {new Date(booking.createdAt).toLocaleString('en-GB')}
+                            {formatDateCompact(booking.createdAt)}
                           </p>
                         </div>
                         <span

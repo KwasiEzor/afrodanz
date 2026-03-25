@@ -82,7 +82,7 @@ export default async function RootLayout({
 }>) {
   const initialLocale = await getServerLocale();
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang={initialLocale} className="scroll-smooth">
       <body
         className="site-shell antialiased selection:bg-primary selection:text-white"
         style={themeStyle}

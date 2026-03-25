@@ -8,11 +8,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { useTranslation } from '@/lib/locale-context';
-
-const euroFormatter = new Intl.NumberFormat('en-GB', {
-  style: 'currency',
-  currency: 'EUR',
-});
+import { formatPrice, formatDateShort, formatTime } from '@/lib/format';
 
 export type EventPreviewItem = {
   id: string;
@@ -105,28 +101,25 @@ export function EventsPreview({
 
         {events.length > 0 ? (
           <div className="grid gap-8 md:grid-cols-3">
-            {events.map((event, index) => {
-              const startsAt = new Date(event.date);
-
-              return (
+            {events.map((event, index) => (
                 <motion.div
                   key={event.id}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.08 }}
                   viewport={{ once: true }}
-                  className="site-panel group relative overflow-hidden rounded-[2.2rem] p-8"
+                  className="site-panel group relative flex flex-col overflow-hidden rounded-[2.2rem] p-8"
                 >
                   <div className="absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(34,211,238,0.6),transparent)]" />
                   <div className="absolute -right-12 top-10 h-32 w-32 rounded-full bg-primary/18 blur-3xl" />
 
-                  <div className="relative">
+                  <div className="relative flex flex-1 flex-col">
                     <div className="mb-8 flex items-start justify-between gap-4">
                       <span className="rounded-full border border-accent/20 bg-accent/10 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-accent">
                         {event.category}
                       </span>
                       <span className="display-type text-3xl font-black text-white">
-                        {euroFormatter.format(event.price / 100)}
+                        {formatPrice(event.price)}
                       </span>
                     </div>
 
@@ -140,20 +133,13 @@ export function EventsPreview({
                       <div className="flex items-center gap-3">
                         <Calendar className="h-4 w-4 text-secondary" />
                         <span>
-                          {startsAt.toLocaleDateString('en-GB', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
+                          {formatDateShort(event.date)}
                         </span>
                       </div>
                       <div className="flex items-center gap-3">
                         <Clock className="h-4 w-4 text-secondary" />
                         <span>
-                          {startsAt.toLocaleTimeString('en-GB', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                          {formatTime(event.date)}
                         </span>
                       </div>
                       <div className="flex items-center gap-3">
@@ -162,7 +148,7 @@ export function EventsPreview({
                       </div>
                     </div>
 
-                    <div className="neon-divider my-8" />
+                    <div className="neon-divider mb-8 mt-auto" />
 
                     <motion.button
                       onClick={() => handleJoin(event.id)}
@@ -185,8 +171,7 @@ export function EventsPreview({
                     </motion.button>
                   </div>
                 </motion.div>
-              );
-            })}
+            ))}
           </div>
         ) : (
           <div className="site-panel rounded-[2.4rem] px-8 py-16 text-center text-slate-400">

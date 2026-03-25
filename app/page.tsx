@@ -11,7 +11,7 @@ import {
 import { getCopy, translate } from '@/lib/i18n';
 import { getServerLocale } from '@/lib/locale.server';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function Home() {
   const locale = await getServerLocale();

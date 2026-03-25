@@ -21,6 +21,8 @@ import { useSearchParams } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import type { Booking, Event, SubscriptionStatus } from '@prisma/client';
+import { formatPrice, formatDateLong, formatTime, formatMonthShort, formatDateCompact } from '@/lib/format';
+import { useTranslation } from '@/lib/locale-context';
 
 type BookingWithEvent = Booking & { event: Event };
 type DashboardTab = 'overview' | 'classes' | 'payments' | 'settings';
@@ -37,12 +39,12 @@ const MEMBER_NAV_LINKS = [
   { href: '/contact', label: 'Contact' },
 ] as const;
 
-function bannerFromSearchParams(searchParams: URLSearchParams): string | null {
+function bannerKeyFromSearchParams(searchParams: URLSearchParams): string | null {
   if (searchParams.get('booking_success')) {
-    return 'Booking confirmed. Your spot is locked in.';
+    return 'dashboardBanner.bookingSuccess';
   }
   if (searchParams.get('subscription_success')) {
-    return 'Membership activated. Welcome to the next level.';
+    return 'dashboardBanner.subscriptionSuccess';
   }
   return null;
 }
@@ -73,13 +75,14 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const [dismissedBanner, setDismissedBanner] = useState(false);
   const searchParams = useSearchParams();
-  const urlBanner = useMemo(() => bannerFromSearchParams(searchParams), [searchParams]);
-  const notification = dismissedBanner ? null : urlBanner;
+  const t = useTranslation();
+  const bannerKey = useMemo(() => bannerKeyFromSearchParams(searchParams), [searchParams]);
+  const notification = dismissedBanner || !bannerKey ? null : t(bannerKey);
 
   const upcomingBookings = bookings.filter((booking) => new Date(booking.event.date) > new Date());
   const pastBookings = bookings.filter((booking) => new Date(booking.event.date) <= new Date());
   const nextBooking = upcomingBookings[0];
-  const totalSpent = bookings.reduce((sum, booking) => sum + booking.event.price, 0);
+  const totalSpent = bookings.reduce((sum, booking) => sum + (booking.event.price ?? 0), 0);
 
   const stats = [
     {
@@ -191,7 +194,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
         </header>
 
         <div className="flex flex-col gap-8 lg:flex-row">
-          <aside className="site-panel flex flex-col rounded-[2.4rem] p-6 lg:w-72">
+          <aside className="site-panel flex min-w-0 flex-col rounded-[2.4rem] p-6 lg:w-72 lg:shrink-0">
             <Link href="/" className="mb-8">
               <p className="site-kicker mb-3">Member portal</p>
               <h1 className="site-title text-3xl font-black uppercase text-white">
@@ -236,8 +239,8 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                       : 'text-slate-400 hover:bg-white/6 hover:text-white'
                   }`}
                 >
-                  <tab.icon className="h-4 w-4" />
-                  {tab.label}
+                  <tab.icon className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{tab.label}</span>
                 </button>
               ))}
             </nav>
@@ -267,7 +270,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
               <div className="site-panel-soft rounded-[1.6rem] px-5 py-4 text-sm text-slate-300">
                 <p className="font-black uppercase tracking-[0.2em] text-accent">Live status</p>
                 <p className="mt-2">
-                  {upcomingBookings.length} upcoming booking{upcomingBookings.length === 1 ? '' : 's'} and €{(totalSpent / 100).toFixed(2)} spent so far.
+                  {upcomingBookings.length} upcoming booking{upcomingBookings.length === 1 ? '' : 's'} and {formatPrice(totalSpent)} spent so far.
                 </p>
               </div>
             </header>
@@ -299,11 +302,11 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                       <div className="mt-6 space-y-4 text-sm text-slate-300">
                         <div className="flex items-center gap-3">
                           <Calendar className="h-4 w-4 text-secondary" />
-                          <span>{new Date(nextBooking.event.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                          <span>{formatDateLong(nextBooking.event.date)}</span>
                         </div>
                         <div className="flex items-center gap-3">
                           <Clock3 className="h-4 w-4 text-secondary" />
-                          <span>{new Date(nextBooking.event.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span>{formatTime(nextBooking.event.date)}</span>
                         </div>
                         <div className="flex items-center gap-3">
                           <MapPin className="h-4 w-4 text-secondary" />
@@ -378,7 +381,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                             <div className="flex items-center gap-5">
                               <div className="flex h-16 w-16 flex-col items-center justify-center rounded-[1.3rem] bg-white/6 text-white">
                                 <span className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-slate-400">
-                                  {new Date(booking.event.date).toLocaleDateString('en-GB', { month: 'short' })}
+                                  {formatMonthShort(booking.event.date)}
                                 </span>
                                 <span className="text-2xl font-black">{new Date(booking.event.date).getDate()}</span>
                               </div>
@@ -387,7 +390,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                                   {booking.event.title}
                                 </h4>
                                 <p className="mt-2 text-sm text-slate-400">
-                                  {new Date(booking.event.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} • {booking.event.location}
+                                  {formatTime(booking.event.date)} • {booking.event.location}
                                 </p>
                               </div>
                             </div>
@@ -413,7 +416,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                           <div key={booking.id} className="flex items-center justify-between rounded-[1.6rem] border border-white/6 bg-white/4 px-5 py-4 text-sm text-slate-400">
                             <div>
                               <p className="font-bold text-white">{booking.event.title}</p>
-                              <p className="mt-1">{new Date(booking.event.date).toLocaleDateString('en-GB')}</p>
+                              <p className="mt-1">{formatDateCompact(booking.event.date)}</p>
                             </div>
                             <span className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Completed</span>
                           </div>
@@ -451,7 +454,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                       <div key={booking.id} className="site-panel-soft flex flex-col gap-4 rounded-[1.8rem] p-6 md:flex-row md:items-center md:justify-between">
                         <div>
                           <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
-                            {new Date(booking.createdAt).toLocaleDateString('en-GB')}
+                            {formatDateCompact(booking.createdAt)}
                           </p>
                           <h4 className="mt-2 text-lg font-black uppercase tracking-[0.12em] text-white">
                             {booking.event.title}
@@ -461,7 +464,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                           </p>
                         </div>
                         <div className="text-left md:text-right">
-                          <p className="text-2xl font-black text-white">€{(booking.event.price / 100).toFixed(2)}</p>
+                          <p className="text-2xl font-black text-white">{formatPrice(booking.event.price)}</p>
                           <p className="mt-2 text-xs font-black uppercase tracking-[0.2em] text-accent">Paid</p>
                         </div>
                       </div>

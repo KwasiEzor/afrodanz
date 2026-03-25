@@ -209,7 +209,7 @@ export async function bookEvent(eventId: string) {
       ],
       mode: 'payment',
       expires_at: Math.floor(checkoutPayload.expiresAt.getTime() / 1000),
-      success_url: `${appUrl}/dashboard?booking_success=true`,
+      success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/events/${checkoutPayload.slug}?booking_canceled=true`,
       client_reference_id: checkoutPayload.bookingId,
       metadata: {
@@ -280,7 +280,7 @@ export async function createSubscriptionSession(planName: string) {
       },
     ],
     mode: 'subscription',
-    success_url: `${appUrl}/dashboard?subscription_success=true`,
+    success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${appUrl}/#pricing`,
     customer_email: userEmail ?? undefined,
     metadata: {

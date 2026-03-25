@@ -30,6 +30,7 @@ function createMotionComponent(tag: 'div' | 'button') {
     delete props.exit;
     delete props.whileHover;
     delete props.whileTap;
+    delete props.whileInView;
     delete props.transition;
     delete props.viewport;
     delete props.layout;
@@ -57,6 +58,21 @@ vi.mock('sonner', () => ({
   toast: {
     error: vi.fn(),
   },
+}));
+
+const EN_TRANSLATIONS: Record<string, string> = {
+  'events.join': 'Join Event',
+  'events.processing': 'Processing...',
+  'events.loginNeeded': 'Please log in to secure your spot.',
+  'events.kicker': 'What\u2019s on',
+  'events.defaultTitle': 'Upcoming Events',
+  'events.description': 'Explore our upcoming workshops and classes.',
+  'events.empty': 'No events scheduled yet.',
+  'events.browse': 'Browse All Events',
+};
+
+vi.mock('@/lib/locale-context', () => ({
+  useTranslation: () => (key: string) => EN_TRANSLATIONS[key] ?? key,
 }));
 
 const sampleEvents: EventPreviewItem[] = [

@@ -33,7 +33,7 @@ function writeToStorage(consent: CookieConsent) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(consent));
     document.cookie = `${COOKIE_NAME}=${encodeURIComponent(
       JSON.stringify(consent)
-    )}; path=/; max-age=${60 * 60 * 24 * 365};`;
+    )}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
   } catch (error) {
     console.error('Unable to save cookie consent', error);
   }

@@ -5,14 +5,14 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
 const EventSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  description: z.string().optional(),
-  date: z.coerce.date(),
-  location: z.string().min(2, "Location is required"),
+  title: z.string().min(3, "Title must be at least 3 characters").max(200, "Title is too long"),
+  description: z.string().max(5000, "Description is too long").optional(),
+  date: z.coerce.date().refine((d) => !isNaN(d.getTime()), { message: 'Invalid date' }),
+  location: z.string().min(2, "Location is required").max(200, "Location is too long"),
   price: z.coerce.number().min(0, "Price must be positive"),
   capacity: z.coerce.number().int().min(1, "Capacity must be at least 1"),
   category: z.enum(['Workshop', 'Class', 'Intensive']),
-  image: z.string().url().optional().or(z.literal('')),
+  image: z.string().max(2048, "URL is too long").url().optional().or(z.literal('')),
 });
 
 async function checkAdmin() {
@@ -117,6 +117,17 @@ export async function deleteEvent(id: string) {
   await checkAdmin();
 
   try {
+    const paidCount = await prisma.booking.count({
+      where: { eventId: id, status: 'PAID' },
+    });
+
+    if (paidCount > 0) {
+      return {
+        success: false,
+        error: `Cannot delete: ${paidCount} paid booking${paidCount > 1 ? 's' : ''} exist. Cancel or refund them first.`,
+      };
+    }
+
     await prisma.event.delete({
       where: { id },
     });

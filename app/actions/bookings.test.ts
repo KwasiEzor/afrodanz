@@ -159,7 +159,7 @@ describe('bookEvent Server Action', () => {
     });
     expect(stripe.checkout.sessions.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        success_url: 'http://localhost:3000/dashboard?booking_success=true',
+        success_url: 'http://localhost:3000/checkout/success?session_id={CHECKOUT_SESSION_ID}',
         cancel_url: 'http://localhost:3000/events/workshop?booking_canceled=true',
       })
     );

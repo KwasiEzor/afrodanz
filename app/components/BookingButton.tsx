@@ -5,6 +5,7 @@ import { ArrowUpRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { bookEvent } from '@/app/actions/bookings';
+import { useTranslation } from '@/lib/locale-context';
 
 interface BookingButtonProps {
   eventId: string;
@@ -21,6 +22,7 @@ export function BookingButton({
 }: BookingButtonProps) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const t = useTranslation();
 
   const handleBooking = async () => {
     if (!hasUser) {
@@ -34,12 +36,12 @@ export function BookingButton({
       if (result.url) {
         window.location.href = result.url;
       } else if (result.success) {
-        toast.success('Booking successful!');
+        toast.success(t('booking.success'));
         router.push('/dashboard?booking_success=true');
       }
     } catch (error: unknown) {
       console.error(error);
-      const message = error instanceof Error ? error.message : 'Failed to book event';
+      const message = error instanceof Error ? error.message : t('booking.failed');
       toast.error(message);
     } finally {
       setLoading(false);
@@ -52,7 +54,7 @@ export function BookingButton({
         disabled
         className="rounded-full border border-emerald-400/30 bg-emerald-500/14 px-8 py-4 text-sm font-black uppercase tracking-[0.24em] text-emerald-200 opacity-80"
       >
-        Already Booked
+        {t('booking.alreadyBooked')}
       </button>
     );
   }
@@ -63,7 +65,7 @@ export function BookingButton({
         disabled
         className="rounded-full border border-white/8 bg-white/6 px-8 py-4 text-sm font-black uppercase tracking-[0.24em] text-slate-400 opacity-60"
       >
-        Full House
+        {t('booking.fullHouse')}
       </button>
     );
   }
@@ -74,7 +76,7 @@ export function BookingButton({
       disabled={loading}
       className="site-primary-button inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-sm font-black uppercase tracking-[0.24em] text-white disabled:opacity-70"
     >
-      {loading ? 'Processing' : 'Secure Spot'}
+      {loading ? t('booking.processing') : t('booking.secureSpot')}
       {!loading && <ArrowUpRight className="h-4 w-4" />}
     </button>
   );
