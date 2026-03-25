@@ -167,7 +167,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
       </AnimatePresence>
 
       <div className="mx-auto max-w-7xl px-4 pb-16 pt-8 md:px-6">
-        <header className="site-panel mb-8 rounded-[2rem] px-5 py-5">
+        <header className="site-panel relative z-50 mb-8 rounded-[2rem] px-5 py-5">
           <div className="flex items-center justify-between gap-4">
             <Link href="/" className="flex items-center gap-3 text-white">
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/18 text-accent">
@@ -437,8 +437,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                   )}
                 </section>
 
-                <section className="space-y-6">
-                  <div className="site-panel-soft rounded-[2rem] p-6">
+                <section className="site-panel-soft rounded-[2rem] p-6">
                     <p className="site-kicker mb-4">{t('dashboardPage.momentum')}</p>
                     <h3 className="site-title text-2xl font-black uppercase text-white">{t('dashboardPage.keepStreak')}</h3>
                     <p className="mt-4 text-sm leading-7 text-slate-400">
@@ -452,22 +451,21 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                         {t('dashboardPage.reviewPlans')}
                       </Link>
                     </div>
-                  </div>
-
-                  <div className="site-panel-soft rounded-[2rem] p-6">
-                    <p className="site-kicker mb-4">{t('dashboardPage.support')}</p>
-                    <h3 className="site-title text-2xl font-black uppercase text-white">{t('dashboardPage.needHelp')}</h3>
-                    <p className="mt-4 text-sm leading-7 text-slate-400">
-                      {t('dashboardPage.supportBody')}
-                    </p>
-                    <Link
-                      href="/contact"
-                      className="site-primary-button mt-6 inline-flex rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.22em] text-white"
-                    >
-                      {t('dashboardPage.contactSupport')}
-                    </Link>
-                  </div>
                 </section>
+              </div>
+
+              <div className="site-panel-soft rounded-[2rem] p-6">
+                <p className="site-kicker mb-4">{t('dashboardPage.support')}</p>
+                <h3 className="site-title text-2xl font-black uppercase text-white">{t('dashboardPage.needHelp')}</h3>
+                <p className="mt-4 text-sm leading-7 text-slate-400">
+                  {t('dashboardPage.supportBody')}
+                </p>
+                <Link
+                  href="/contact"
+                  className="site-primary-button mt-6 inline-flex rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.22em] text-white"
+                >
+                  {t('dashboardPage.contactSupport')}
+                </Link>
               </div>
             </motion.div>
           )}
