@@ -45,25 +45,25 @@ function bannerKeyFromSearchParams(searchParams: URLSearchParams): string | null
 function membershipLabelKey(status: SubscriptionStatus | null | undefined): string {
   switch (status) {
     case 'ACTIVE':
-      return 'dashboard.membershipLabels.active';
+      return 'dashboardPage.membershipLabels.active';
     case 'PAST_DUE':
-      return 'dashboard.membershipLabels.pastDue';
+      return 'dashboardPage.membershipLabels.pastDue';
     case 'CANCELED':
-      return 'dashboard.membershipLabels.canceled';
+      return 'dashboardPage.membershipLabels.canceled';
     case 'INCOMPLETE':
-      return 'dashboard.membershipLabels.incomplete';
+      return 'dashboardPage.membershipLabels.incomplete';
     default:
-      return 'dashboard.membershipLabels.none';
+      return 'dashboardPage.membershipLabels.none';
   }
 }
 
 const TAB_IDS: DashboardTab[] = ['overview', 'classes', 'payments', 'settings'];
 const TAB_ICONS = [User2, Calendar, CreditCard, Settings2] as const;
 const TAB_LABEL_KEYS = [
-  'dashboard.tabs.overview',
-  'dashboard.tabs.classes',
-  'dashboard.tabs.payments',
-  'dashboard.tabs.settings',
+  'dashboardPage.tabs.overview',
+  'dashboardPage.tabs.classes',
+  'dashboardPage.tabs.payments',
+  'dashboardPage.tabs.settings',
 ] as const;
 
 const NAV_LINK_KEYS = [
