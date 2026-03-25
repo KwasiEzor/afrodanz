@@ -16,6 +16,7 @@ import {
 import {
   evaluatePasswordStrength,
 } from '@/lib/password-strength';
+import { useTranslation } from '@/lib/locale-context';
 import {
   registerWithEmailPassword,
 } from './actions';
@@ -23,7 +24,7 @@ import { initialRegisterActionState } from './action-state';
 
 type OAuthProvider = {
   id: string;
-  label: string;
+  labelKey: string;
 };
 
 type AuthExperienceProps = {
@@ -44,6 +45,14 @@ const passwordStrengthClasses = [
   'bg-orange-500/80',
   'bg-amber-400/90',
   'bg-emerald-400/90',
+] as const;
+
+const STRENGTH_LABEL_KEYS = [
+  'auth.strengthLabels.veryWeak',
+  'auth.strengthLabels.weak',
+  'auth.strengthLabels.fair',
+  'auth.strengthLabels.strong',
+  'auth.strengthLabels.excellent',
 ] as const;
 
 function GoogleIcon() {
@@ -82,6 +91,7 @@ export function AuthExperience({
   emailAuthEnabled,
   oauthProviders,
 }: AuthExperienceProps) {
+  const t = useTranslation();
   const [mode, setMode] = useState<AuthMode>('signin');
   const [loginError, setLoginError] = useState<string | null>(null);
   const [registerState, registerAction, registerPending] = useActionState(
@@ -123,7 +133,7 @@ export function AuthExperience({
       setLoginError(
         fieldErrors.email?.[0] ??
           fieldErrors.password?.[0] ??
-          'Enter your email and password.'
+          t('auth.errorEnterCredentials')
       );
       return;
     }
@@ -142,16 +152,16 @@ export function AuthExperience({
       }
 
       if (result?.code === authErrorCodes.emailNotVerified) {
-        setLoginError('Confirm your email from the Supabase verification email before signing in.');
+        setLoginError(t('auth.errorEmailNotVerified'));
         return;
       }
 
       if (result?.code === authErrorCodes.authUnavailable) {
-        setLoginError('Email sign-in is temporarily unavailable. Check the server configuration.');
+        setLoginError(t('auth.errorAuthUnavailable'));
         return;
       }
 
-      setLoginError('Your email or password is incorrect.');
+      setLoginError(t('auth.errorDefault'));
     });
   }
 
@@ -175,14 +185,13 @@ export function AuthExperience({
             <div className="max-w-xl">
               <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[0.68rem] font-bold uppercase tracking-[0.32em] text-white/70">
                 <Sparkles className="h-3.5 w-3.5 text-secondary" />
-                AfroDanz Member Access
+                {t('auth.memberAccess')}
               </p>
               <h1 className="site-title max-w-lg text-4xl font-black uppercase leading-[0.92] text-white md:text-[3.35rem]">
-                Step Into The Studio With A Secure Member Account
+                {t('auth.heroTitle')}
               </h1>
               <p className="mt-6 max-w-md text-sm leading-7 text-slate-200/88 md:text-base">
-                Create your account with verified email access, manage your bookings,
-                and keep your dance journey in one place.
+                {t('auth.heroDescription')}
               </p>
             </div>
 
@@ -190,28 +199,28 @@ export function AuthExperience({
               <div className="site-panel-soft rounded-[1.6rem] p-5">
                 <Mail className="h-5 w-5 text-secondary" />
                 <p className="mt-4 text-sm font-black uppercase tracking-[0.18em] text-white">
-                  Verified Email
+                  {t('auth.verifiedEmail')}
                 </p>
                 <p className="mt-2 text-sm leading-6 text-slate-300">
-                  Supabase confirms ownership before account access is granted.
+                  {t('auth.verifiedEmailBody')}
                 </p>
               </div>
               <div className="site-panel-soft rounded-[1.6rem] p-5">
                 <LockKeyhole className="h-5 w-5 text-secondary" />
                 <p className="mt-4 text-sm font-black uppercase tracking-[0.18em] text-white">
-                  Strong Passwords
+                  {t('auth.strongPasswords')}
                 </p>
                 <p className="mt-2 text-sm leading-6 text-slate-300">
-                  Password strength is checked before registration is accepted.
+                  {t('auth.strongPasswordsBody')}
                 </p>
               </div>
               <div className="site-panel-soft rounded-[1.6rem] p-5">
                 <User2 className="h-5 w-5 text-secondary" />
                 <p className="mt-4 text-sm font-black uppercase tracking-[0.18em] text-white">
-                  Member Dashboard
+                  {t('auth.memberDashboard')}
                 </p>
                 <p className="mt-2 text-sm leading-6 text-slate-300">
-                  Book classes, review payments, and keep your profile current.
+                  {t('auth.memberDashboardBody')}
                 </p>
               </div>
             </div>
@@ -235,7 +244,7 @@ export function AuthExperience({
                     : 'text-muted hover:text-white'
                 }`}
               >
-                Sign In
+                {t('auth.signInTab')}
               </button>
               <button
                 type="button"
@@ -246,7 +255,7 @@ export function AuthExperience({
                     : 'text-muted hover:text-white'
                 }`}
               >
-                Create Account
+                {t('auth.createAccountTab')}
               </button>
             </div>
 
@@ -263,10 +272,10 @@ export function AuthExperience({
                   >
                     <div className="mb-8">
                       <h2 className="text-2xl font-black uppercase tracking-tight text-white">
-                        Member Sign In
+                        {t('auth.memberSignIn')}
                       </h2>
                       <p className="mt-2 text-sm leading-6 text-muted">
-                        Use your verified email address and password to enter the portal.
+                        {t('auth.signInDescription')}
                       </p>
                     </div>
 
@@ -274,19 +283,19 @@ export function AuthExperience({
                       <form action={handleCredentialsLogin} className="space-y-4">
                         <div>
                           <label className="mb-2 block text-xs font-bold uppercase tracking-[0.22em] text-muted">
-                            Email
+                            {t('auth.email')}
                           </label>
                           <input
                             type="email"
                             name="email"
                             autoComplete="email"
                             className={inputClassName(Boolean(loginError))}
-                            placeholder="you@example.com"
+                            placeholder={t('auth.emailPlaceholder')}
                           />
                         </div>
                         <div>
                       <label className="mb-2 block text-xs font-bold uppercase tracking-[0.22em] text-muted">
-                        Password
+                        {t('auth.password')}
                       </label>
                       <div className="relative">
                         <input
@@ -294,13 +303,13 @@ export function AuthExperience({
                           name="password"
                           autoComplete="current-password"
                           className={`${inputClassName(Boolean(loginError))} pr-14`}
-                          placeholder="Enter your password"
+                          placeholder={t('auth.passwordPlaceholder')}
                         />
                         <button
                           type="button"
                           onClick={() => setShowLoginPassword((current) => !current)}
                           className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted transition hover:text-white"
-                          aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
+                          aria-label={showLoginPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                         >
                           {showLoginPassword ? (
                             <EyeOff className="h-4 w-4" />
@@ -324,12 +333,12 @@ export function AuthExperience({
                           disabled={isLoginPending}
                         >
                           {isLoginPending ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
-                          {isLoginPending ? 'Signing In...' : 'Sign In Securely'}
+                          {isLoginPending ? t('auth.signingIn') : t('auth.signInSecurely')}
                         </button>
                       </form>
                     ) : (
                       <div className="rounded-[1.6rem] border border-amber-400/20 bg-amber-500/8 p-5 text-sm leading-6 text-slate-200">
-                        Email sign-in is not configured on the server yet.
+                        {t('auth.signInUnavailable')}
                       </div>
                     )}
                   </motion.div>
@@ -344,10 +353,10 @@ export function AuthExperience({
                   >
                     <div className="mb-8">
                       <h2 className="text-2xl font-black uppercase tracking-tight text-white">
-                        Create Your Account
+                        {t('auth.createAccountTitle')}
                       </h2>
                       <p className="mt-2 text-sm leading-6 text-muted">
-                        Register with Supabase email confirmation before your first sign-in.
+                        {t('auth.registerDescription')}
                       </p>
                     </div>
 
@@ -355,14 +364,14 @@ export function AuthExperience({
                       <form action={registerAction} className="space-y-4">
                         <div>
                           <label className="mb-2 block text-xs font-bold uppercase tracking-[0.22em] text-muted">
-                            Full Name
+                            {t('auth.fullName')}
                           </label>
                           <input
                             type="text"
                             name="name"
                             autoComplete="name"
                             className={inputClassName(Boolean(registerState.fieldErrors?.name?.length))}
-                            placeholder="Your name"
+                            placeholder={t('auth.fullNamePlaceholder')}
                           />
                           {registerState.fieldErrors?.name?.[0] ? (
                             <p className="mt-2 text-sm text-rose-200">
@@ -373,14 +382,14 @@ export function AuthExperience({
 
                         <div>
                           <label className="mb-2 block text-xs font-bold uppercase tracking-[0.22em] text-muted">
-                            Email
+                            {t('auth.email')}
                           </label>
                           <input
                             type="email"
                             name="email"
                             autoComplete="email"
                             className={inputClassName(Boolean(registerState.fieldErrors?.email?.length))}
-                            placeholder="you@example.com"
+                            placeholder={t('auth.emailPlaceholder')}
                           />
                           {registerState.fieldErrors?.email?.[0] ? (
                             <p className="mt-2 text-sm text-rose-200">
@@ -391,7 +400,7 @@ export function AuthExperience({
 
                         <div>
                           <label className="mb-2 block text-xs font-bold uppercase tracking-[0.22em] text-muted">
-                            Password
+                            {t('auth.password')}
                           </label>
                           <div className="relative">
                             <input
@@ -399,7 +408,7 @@ export function AuthExperience({
                               name="password"
                               autoComplete="new-password"
                               className={`${inputClassName(Boolean(registerState.fieldErrors?.password?.length))} pr-14`}
-                              placeholder="Create a strong password"
+                              placeholder={t('auth.createPassword')}
                               value={passwordValue ?? ''}
                               onChange={(event) => setPasswordValue(event.currentTarget.value ?? '')}
                             />
@@ -407,7 +416,7 @@ export function AuthExperience({
                               type="button"
                               onClick={() => setShowSignupPassword((current) => !current)}
                               className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted transition hover:text-white"
-                              aria-label={showSignupPassword ? 'Hide password' : 'Show password'}
+                              aria-label={showSignupPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                             >
                               {showSignupPassword ? (
                                 <EyeOff className="h-4 w-4" />
@@ -430,16 +439,16 @@ export function AuthExperience({
                             ))}
                           </div>
                           <div className="mt-3 flex items-center justify-between text-xs uppercase tracking-[0.18em] text-muted">
-                            <span>Password strength</span>
-                            <span>{passwordValue ? signupStrength.label : 'Waiting for input'}</span>
+                            <span>{t('auth.passwordStrength')}</span>
+                            <span>{passwordValue ? t(STRENGTH_LABEL_KEYS[signupStrength.score]) : t('auth.waitingForInput')}</span>
                           </div>
                           <div className="mt-3 grid gap-2 text-xs leading-5 text-slate-300 md:grid-cols-2">
-                            <span>{signupStrength.checks.length ? 'OK' : 'Need'} 8+ characters</span>
-                            <span>{signupStrength.checks.uppercase ? 'OK' : 'Need'} uppercase letter</span>
-                            <span>{signupStrength.checks.lowercase ? 'OK' : 'Need'} lowercase letter</span>
-                            <span>{signupStrength.checks.number ? 'OK' : 'Need'} number</span>
+                            <span>{signupStrength.checks.length ? t('auth.okChars') : t('auth.needChars')} {t('auth.req8chars')}</span>
+                            <span>{signupStrength.checks.uppercase ? t('auth.okChars') : t('auth.needChars')} {t('auth.reqUppercase')}</span>
+                            <span>{signupStrength.checks.lowercase ? t('auth.okChars') : t('auth.needChars')} {t('auth.reqLowercase')}</span>
+                            <span>{signupStrength.checks.number ? t('auth.okChars') : t('auth.needChars')} {t('auth.reqNumber')}</span>
                             <span className="md:col-span-2">
-                              {signupStrength.checks.symbol || passwordValue.length >= 12 ? 'OK' : 'Need'} symbol or 12+ characters
+                              {signupStrength.checks.symbol || passwordValue.length >= 12 ? t('auth.okChars') : t('auth.needChars')} {t('auth.reqSymbol')}
                             </span>
                           </div>
                           {registerState.fieldErrors?.password?.[0] ? (
@@ -451,7 +460,7 @@ export function AuthExperience({
 
                         <div>
                           <label className="mb-2 block text-xs font-bold uppercase tracking-[0.22em] text-muted">
-                            Confirm Password
+                            {t('auth.confirmPassword')}
                           </label>
                           <div className="relative">
                             <input
@@ -459,13 +468,13 @@ export function AuthExperience({
                               name="confirmPassword"
                               autoComplete="new-password"
                               className={`${inputClassName(Boolean(registerState.fieldErrors?.confirmPassword?.length))} pr-14`}
-                              placeholder="Repeat your password"
+                              placeholder={t('auth.repeatPassword')}
                             />
                             <button
                               type="button"
                               onClick={() => setShowConfirmPassword((current) => !current)}
                               className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted transition hover:text-white"
-                              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                              aria-label={showConfirmPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                             >
                               {showConfirmPassword ? (
                                 <EyeOff className="h-4 w-4" />
@@ -492,7 +501,7 @@ export function AuthExperience({
                               onClick={() => setMode('signin')}
                               className="mt-4 text-xs font-black uppercase tracking-[0.22em] text-white"
                             >
-                              Go To Sign In
+                              {t('auth.goToSignIn')}
                             </button>
                           </div>
                         ) : null}
@@ -503,12 +512,12 @@ export function AuthExperience({
                           disabled={registerPending}
                         >
                           {registerPending ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
-                          {registerPending ? 'Creating Account...' : 'Register With Email'}
+                          {registerPending ? t('auth.creatingAccount') : t('auth.registerWithEmail')}
                         </button>
                       </form>
                     ) : (
                       <div className="rounded-[1.6rem] border border-amber-400/20 bg-amber-500/8 p-5 text-sm leading-6 text-slate-200">
-                        Email registration is not configured on the server yet.
+                        {t('auth.registerUnavailable')}
                       </div>
                     )}
                   </motion.div>
@@ -524,7 +533,7 @@ export function AuthExperience({
                   </div>
                   <div className="relative flex justify-center">
                     <span className="bg-[var(--panel)] px-4 text-[0.68rem] font-bold uppercase tracking-[0.32em] text-muted">
-                      Or continue with
+                      {t('auth.orContinueWith')}
                     </span>
                   </div>
                 </div>
@@ -543,7 +552,7 @@ export function AuthExperience({
                     >
                       {provider.id === 'google' ? <GoogleIcon /> : null}
                       {provider.id === 'github' ? <Github className="h-5 w-5" /> : null}
-                      {provider.label}
+                      {t(provider.labelKey)}
                     </button>
                   ))}
                 </div>
@@ -551,13 +560,13 @@ export function AuthExperience({
             ) : null}
 
             <p className="mt-8 text-center text-sm leading-6 text-muted">
-              By continuing, you agree to our{' '}
+              {t('auth.agreeTerms')}{' '}
               <Link href="/terms" className="font-bold text-primary">
-                Terms of Service
+                {t('auth.termsOfService')}
               </Link>{' '}
-              and{' '}
+              {t('auth.and')}{' '}
               <Link href="/privacy" className="font-bold text-primary">
-                Privacy Policy
+                {t('auth.privacyPolicy')}
               </Link>
               .
             </p>
@@ -567,7 +576,7 @@ export function AuthExperience({
                 href="/"
                 className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[0.68rem] font-black uppercase tracking-[0.22em] text-muted transition hover:border-primary/40 hover:text-white"
               >
-                Back To Homepage
+                {t('auth.backToHomepage')}
               </Link>
             </div>
           </motion.div>

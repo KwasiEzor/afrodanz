@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, RotateCcw, Home } from 'lucide-react';
+import { useTranslation } from '@/lib/locale-context';
 
 export default function EventsError({
   error,
@@ -11,6 +12,8 @@ export default function EventsError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslation();
+
   useEffect(() => {
     console.error('Events error:', error);
   }, [error]);
@@ -22,10 +25,10 @@ export default function EventsError({
           <AlertTriangle className="h-8 w-8" />
         </div>
         <h2 className="site-title text-2xl font-black uppercase text-white">
-          Could not load events
+          {t('errors.couldNotLoadEvents')}
         </h2>
         <p className="mt-4 text-sm text-slate-400">
-          We had trouble fetching the event list. Please try again.
+          {t('errors.eventsError')}
         </p>
         <div className="mt-8 flex flex-col gap-3">
           <button
@@ -33,14 +36,14 @@ export default function EventsError({
             className="site-primary-button flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-black uppercase tracking-[0.2em] text-white"
           >
             <RotateCcw className="h-4 w-4" />
-            Retry
+            {t('errors.retry')}
           </button>
           <Link
             href="/"
             className="site-outline-button flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-black uppercase tracking-[0.2em] text-white"
           >
             <Home className="h-4 w-4" />
-            Go Home
+            {t('errors.goHome')}
           </Link>
         </div>
       </div>

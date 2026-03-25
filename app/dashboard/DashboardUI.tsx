@@ -32,13 +32,6 @@ interface DashboardUIProps {
   bookings: BookingWithEvent[];
 }
 
-const MEMBER_NAV_LINKS = [
-  { href: '/', label: 'Home' },
-  { href: '/events', label: 'Events' },
-  { href: '/about', label: 'About' },
-  { href: '/contact', label: 'Contact' },
-] as const;
-
 function bannerKeyFromSearchParams(searchParams: URLSearchParams): string | null {
   if (searchParams.get('booking_success')) {
     return 'dashboardBanner.bookingSuccess';
@@ -49,27 +42,36 @@ function bannerKeyFromSearchParams(searchParams: URLSearchParams): string | null
   return null;
 }
 
-function membershipLabel(status: SubscriptionStatus | null | undefined) {
+function membershipLabelKey(status: SubscriptionStatus | null | undefined): string {
   switch (status) {
     case 'ACTIVE':
-      return 'Active Member';
+      return 'dashboard.membershipLabels.active';
     case 'PAST_DUE':
-      return 'Payment Issue';
+      return 'dashboard.membershipLabels.pastDue';
     case 'CANCELED':
-      return 'Canceled';
+      return 'dashboard.membershipLabels.canceled';
     case 'INCOMPLETE':
-      return 'Setup Pending';
+      return 'dashboard.membershipLabels.incomplete';
     default:
-      return 'No Membership';
+      return 'dashboard.membershipLabels.none';
   }
 }
 
-const TABS: Array<{ id: DashboardTab; label: string; icon: typeof User2 }> = [
-  { id: 'overview', label: 'Overview', icon: User2 },
-  { id: 'classes', label: 'My Classes', icon: Calendar },
-  { id: 'payments', label: 'Payments', icon: CreditCard },
-  { id: 'settings', label: 'Settings', icon: Settings2 },
-];
+const TAB_IDS: DashboardTab[] = ['overview', 'classes', 'payments', 'settings'];
+const TAB_ICONS = [User2, Calendar, CreditCard, Settings2] as const;
+const TAB_LABEL_KEYS = [
+  'dashboard.tabs.overview',
+  'dashboard.tabs.classes',
+  'dashboard.tabs.payments',
+  'dashboard.tabs.settings',
+] as const;
+
+const NAV_LINK_KEYS = [
+  { href: '/', key: 'nav.home' },
+  { href: '/events', key: 'nav.events' },
+  { href: '/about', key: 'nav.about' },
+  { href: '/contact', key: 'nav.contact' },
+] as const;
 
 export default function DashboardUI({ user, bookings }: DashboardUIProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
@@ -86,17 +88,17 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
 
   const stats = [
     {
-      label: 'Next Session',
-      value: nextBooking?.event.title ?? 'No booking yet',
+      label: t('dashboardPage.stats.nextSession'),
+      value: nextBooking?.event.title ?? t('dashboardPage.stats.noBookingYet'),
       icon: Calendar,
     },
     {
-      label: 'Membership',
-      value: membershipLabel(user.subscriptionStatus),
+      label: t('dashboardPage.stats.membership'),
+      value: t(membershipLabelKey(user.subscriptionStatus)),
       icon: CreditCard,
     },
     {
-      label: 'Total Bookings',
+      label: t('dashboardPage.stats.totalBookings'),
       value: bookings.length.toString(),
       icon: Sparkles,
     },
@@ -120,7 +122,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
               <CheckCircle2 className="h-6 w-6" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-black uppercase tracking-[0.2em] text-white">Success</p>
+              <p className="text-sm font-black uppercase tracking-[0.2em] text-white">{t('dashboardPage.success')}</p>
               <p className="mt-2 text-sm leading-6 text-slate-300">{notification}</p>
             </div>
             <button
@@ -146,7 +148,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                     AfroDanz
                   </p>
                   <p className="text-[0.65rem] font-bold uppercase tracking-[0.22em] text-slate-400">
-                    Member Dashboard
+                    {t('dashboardPage.memberDashboard')}
                   </p>
                 </div>
               </Link>
@@ -155,20 +157,20 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                 type="button"
                 onClick={handleSignOut}
                 className="lg:hidden inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 p-3 text-red-300"
-                aria-label="Logout"
+                aria-label={t('dashboardPage.logout')}
               >
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
 
             <nav className="flex flex-wrap items-center gap-2">
-              {MEMBER_NAV_LINKS.map((link) => (
+              {NAV_LINK_KEYS.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   className="rounded-full border border-white/8 bg-white/5 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-slate-300 transition hover:border-primary/30 hover:text-white"
                 >
-                  {link.label}
+                  {t(link.key)}
                 </Link>
               ))}
             </nav>
@@ -178,7 +180,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                 href="/events"
                 className="site-outline-button inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.22em] text-white"
               >
-                Browse Events
+                {t('dashboardPage.browseEvents')}
                 <ExternalLink className="h-4 w-4" />
               </Link>
               <button
@@ -187,7 +189,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-5 py-3 text-xs font-black uppercase tracking-[0.22em] text-red-300"
               >
                 <LogOut className="h-4 w-4" />
-                Logout
+                {t('dashboardPage.logout')}
               </button>
             </div>
           </div>
@@ -196,7 +198,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
         <div className="flex flex-col gap-8 lg:flex-row">
           <aside className="site-panel flex min-w-0 flex-col rounded-[2.4rem] p-6 lg:w-72 lg:shrink-0">
             <Link href="/" className="mb-8">
-              <p className="site-kicker mb-3">Member portal</p>
+              <p className="site-kicker mb-3">{t('dashboardPage.memberPortal')}</p>
               <h1 className="site-title text-3xl font-black uppercase text-white">
                 Afro<span className="site-highlight">Danz</span>
               </h1>
@@ -207,7 +209,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                 {user.image ? (
                   <Image
                     src={user.image}
-                    alt={user.name || 'Member avatar'}
+                    alt={user.name || t('dashboardPage.memberAvatar')}
                     width={56}
                     height={56}
                     className="rounded-2xl border border-white/10 object-cover"
@@ -219,30 +221,33 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                 )}
                 <div>
                   <p className="font-black uppercase tracking-[0.18em] text-white">
-                    {user.name?.split(' ')[0] || 'Dancer'}
+                    {user.name?.split(' ')[0] || t('dashboardPage.dancer')}
                   </p>
                   <p className="mt-1 text-xs font-bold uppercase tracking-[0.18em] text-accent">
-                    {membershipLabel(user.subscriptionStatus)}
+                    {t(membershipLabelKey(user.subscriptionStatus))}
                   </p>
                 </div>
               </div>
             </div>
 
             <nav className="grid gap-2 md:grid-cols-4 lg:grid-cols-1">
-              {TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-3 rounded-[1.2rem] px-4 py-3 text-left text-sm font-black uppercase tracking-[0.2em] ${
-                    activeTab === tab.id
-                      ? 'site-primary-button text-white'
-                      : 'text-slate-400 hover:bg-white/6 hover:text-white'
-                  }`}
-                >
-                  <tab.icon className="h-4 w-4 shrink-0" />
-                  <span className="truncate">{tab.label}</span>
-                </button>
-              ))}
+              {TAB_IDS.map((tabId, index) => {
+                const Icon = TAB_ICONS[index];
+                return (
+                  <button
+                    key={tabId}
+                    onClick={() => setActiveTab(tabId)}
+                    className={`flex items-center gap-3 rounded-[1.2rem] px-4 py-3 text-left text-sm font-black uppercase tracking-[0.2em] ${
+                      activeTab === tabId
+                        ? 'site-primary-button text-white'
+                        : 'text-slate-400 hover:bg-white/6 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{t(TAB_LABEL_KEYS[index])}</span>
+                  </button>
+                );
+              })}
             </nav>
 
             <div className="mt-8 flex flex-col gap-3 lg:hidden">
@@ -250,7 +255,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                 href="/events"
                 className="site-outline-button inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.22em] text-white"
               >
-                Browse Events
+                {t('dashboardPage.browseEvents')}
                 <ExternalLink className="h-4 w-4" />
               </Link>
             </div>
@@ -259,18 +264,18 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
           <div className="flex-1">
             <header className="mb-8 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="site-kicker mb-4">Dashboard</p>
+                <p className="site-kicker mb-4">{t('dashboardPage.kicker')}</p>
                 <h2 className="site-title text-4xl font-black uppercase text-white md:text-5xl">
-                  Welcome Back
+                  {t('dashboardPage.welcomeBack')}
                   <span className="site-highlight block">
-                    {user.name?.split(' ')[0] || 'Dancer'}
+                    {user.name?.split(' ')[0] || t('dashboardPage.dancer')}
                   </span>
                 </h2>
               </div>
               <div className="site-panel-soft rounded-[1.6rem] px-5 py-4 text-sm text-slate-300">
-                <p className="font-black uppercase tracking-[0.2em] text-accent">Live status</p>
+                <p className="font-black uppercase tracking-[0.2em] text-accent">{t('dashboardPage.liveStatus')}</p>
                 <p className="mt-2">
-                  {upcomingBookings.length} upcoming booking{upcomingBookings.length === 1 ? '' : 's'} and {formatPrice(totalSpent)} spent so far.
+                  {upcomingBookings.length} {t('dashboardPage.upcomingBookings')} {t('dashboardPage.and', 'and')} {formatPrice(totalSpent)} {t('dashboardPage.spentSoFar')}
                 </p>
               </div>
             </header>
@@ -293,7 +298,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
 
               <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
                 <section className="site-panel rounded-[2.4rem] p-8">
-                  <p className="site-kicker mb-4">Next up</p>
+                  <p className="site-kicker mb-4">{t('dashboardPage.nextUp')}</p>
                   {nextBooking ? (
                     <>
                       <h3 className="site-title text-3xl font-black uppercase text-white">
@@ -317,45 +322,45 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                         href={`/events/${nextBooking.event.slug}`}
                         className="site-primary-button mt-8 inline-flex items-center gap-2 rounded-full px-6 py-3 text-xs font-black uppercase tracking-[0.22em] text-white"
                       >
-                        View Event
+                        {t('dashboardPage.viewEvent')}
                         <ExternalLink className="h-4 w-4" />
                       </Link>
                     </>
                   ) : (
                     <div className="rounded-[1.8rem] border border-dashed border-white/10 px-6 py-12 text-slate-400">
-                      No active booking yet. Pick your next session from the live event calendar.
+                      {t('dashboardPage.noActiveBooking')}
                     </div>
                   )}
                 </section>
 
                 <section className="space-y-6">
                   <div className="site-panel-soft rounded-[2rem] p-6">
-                    <p className="site-kicker mb-4">Momentum</p>
-                    <h3 className="site-title text-2xl font-black uppercase text-white">Keep the streak alive</h3>
+                    <p className="site-kicker mb-4">{t('dashboardPage.momentum')}</p>
+                    <h3 className="site-title text-2xl font-black uppercase text-white">{t('dashboardPage.keepStreak')}</h3>
                     <p className="mt-4 text-sm leading-7 text-slate-400">
-                      Book another session or upgrade your membership to get priority access to the next intensive.
+                      {t('dashboardPage.momentumBody')}
                     </p>
                     <div className="mt-6 flex flex-col gap-3">
                       <Link href="/events" className="site-outline-button rounded-full px-5 py-3 text-center text-xs font-black uppercase tracking-[0.22em] text-white">
-                        Explore events
+                        {t('dashboardPage.exploreEvents')}
                       </Link>
                       <Link href="/#pricing" className="site-outline-button rounded-full px-5 py-3 text-center text-xs font-black uppercase tracking-[0.22em] text-white">
-                        Review plans
+                        {t('dashboardPage.reviewPlans')}
                       </Link>
                     </div>
                   </div>
 
                   <div className="site-panel-soft rounded-[2rem] p-6">
-                    <p className="site-kicker mb-4">Support</p>
-                    <h3 className="site-title text-2xl font-black uppercase text-white">Need help?</h3>
+                    <p className="site-kicker mb-4">{t('dashboardPage.support')}</p>
+                    <h3 className="site-title text-2xl font-black uppercase text-white">{t('dashboardPage.needHelp')}</h3>
                     <p className="mt-4 text-sm leading-7 text-slate-400">
-                      For receipts, membership questions, or account changes, the team can help directly.
+                      {t('dashboardPage.supportBody')}
                     </p>
                     <Link
                       href="/contact"
                       className="site-primary-button mt-6 inline-flex rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.22em] text-white"
                     >
-                      Contact support
+                      {t('dashboardPage.contactSupport')}
                     </Link>
                   </div>
                 </section>
@@ -366,14 +371,14 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
           {activeTab === 'classes' && (
             <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
               <section className="site-panel rounded-[2.4rem] p-8">
-                <h3 className="site-title text-3xl font-black uppercase text-white">My Classes</h3>
+                <h3 className="site-title text-3xl font-black uppercase text-white">{t('dashboardPage.myClasses')}</h3>
                 <div className="mt-8 space-y-10">
                   <div>
-                    <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-accent">Upcoming</p>
+                    <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-accent">{t('dashboardPage.upcoming')}</p>
                     <div className="space-y-4">
                       {upcomingBookings.length === 0 ? (
                         <div className="rounded-[1.8rem] border border-dashed border-white/10 px-6 py-12 text-slate-400">
-                          No upcoming classes yet.
+                          {t('dashboardPage.noUpcomingClasses')}
                         </div>
                       ) : (
                         upcomingBookings.map((booking) => (
@@ -396,7 +401,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                             </div>
                             <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-emerald-300">
                               <CheckCircle2 className="h-4 w-4" />
-                              Confirmed
+                              {t('dashboardPage.confirmed')}
                             </span>
                           </div>
                         ))
@@ -405,11 +410,11 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                   </div>
 
                   <div>
-                    <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-slate-500">Past Sessions</p>
+                    <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-slate-500">{t('dashboardPage.pastSessions')}</p>
                     <div className="space-y-4">
                       {pastBookings.length === 0 ? (
                         <div className="rounded-[1.8rem] border border-dashed border-white/10 px-6 py-10 text-slate-500">
-                          Your completed sessions will appear here.
+                          {t('dashboardPage.completedSessionsAppear')}
                         </div>
                       ) : (
                         pastBookings.map((booking) => (
@@ -418,7 +423,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                               <p className="font-bold text-white">{booking.event.title}</p>
                               <p className="mt-1">{formatDateCompact(booking.event.date)}</p>
                             </div>
-                            <span className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Completed</span>
+                            <span className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">{t('dashboardPage.completed')}</span>
                           </div>
                         ))
                       )}
@@ -434,20 +439,20 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
               <section className="site-panel rounded-[2.4rem] p-8">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div>
-                    <h3 className="site-title text-3xl font-black uppercase text-white">Payments</h3>
+                    <h3 className="site-title text-3xl font-black uppercase text-white">{t('dashboardPage.payments')}</h3>
                     <p className="mt-2 text-sm text-slate-400">
-                      Stripe handles payment confirmation and sends receipts by email after checkout.
+                      {t('dashboardPage.paymentsDescription')}
                     </p>
                   </div>
                   <div className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-emerald-300">
-                    Secure Payments
+                    {t('dashboardPage.securePayments')}
                   </div>
                 </div>
 
                 <div className="mt-8 space-y-4">
                   {bookings.length === 0 ? (
                     <div className="rounded-[1.8rem] border border-dashed border-white/10 px-6 py-12 text-slate-400">
-                      No payment history yet.
+                      {t('dashboardPage.noPaymentHistory')}
                     </div>
                   ) : (
                     bookings.map((booking) => (
@@ -460,12 +465,12 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                             {booking.event.title}
                           </h4>
                           <p className="mt-2 text-sm text-slate-400">
-                            Receipt is managed by Stripe and sent to your account email.
+                            {t('dashboardPage.receiptManaged')}
                           </p>
                         </div>
                         <div className="text-left md:text-right">
                           <p className="text-2xl font-black text-white">{formatPrice(booking.event.price)}</p>
-                          <p className="mt-2 text-xs font-black uppercase tracking-[0.2em] text-accent">Paid</p>
+                          <p className="mt-2 text-xs font-black uppercase tracking-[0.2em] text-accent">{t('dashboardPage.paid')}</p>
                         </div>
                       </div>
                     ))
@@ -478,11 +483,11 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
           {activeTab === 'settings' && (
             <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
               <section className="site-panel rounded-[2.4rem] p-8">
-                <h3 className="site-title text-3xl font-black uppercase text-white">Account Settings</h3>
+                <h3 className="site-title text-3xl font-black uppercase text-white">{t('dashboardPage.accountSettings')}</h3>
                 <div className="mt-8 grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
-                      Display Name
+                      {t('dashboardPage.displayName')}
                     </label>
                     <input
                       disabled
@@ -492,7 +497,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
-                      Email Address
+                      {t('dashboardPage.emailAddress')}
                     </label>
                     <input
                       disabled
@@ -509,19 +514,19 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                     href="/contact"
                     className="site-outline-button rounded-full px-6 py-3 text-center text-xs font-black uppercase tracking-[0.22em] text-white"
                   >
-                    Request account update
+                    {t('dashboardPage.requestUpdate')}
                   </Link>
                   <Link
                     href="/privacy"
                     className="site-outline-button rounded-full px-6 py-3 text-center text-xs font-black uppercase tracking-[0.22em] text-white"
                   >
-                    Privacy policy
+                    {t('dashboardPage.privacyPolicy')}
                   </Link>
                   <Link
                     href="/terms"
                     className="site-outline-button rounded-full px-6 py-3 text-center text-xs font-black uppercase tracking-[0.22em] text-white"
                   >
-                    Terms
+                    {t('dashboardPage.terms')}
                   </Link>
                 </div>
               </section>
@@ -532,22 +537,22 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
 
         <footer className="mt-10 border-t border-white/8 pt-8">
           <div className="flex flex-col gap-4 text-sm text-slate-400 md:flex-row md:items-center md:justify-between">
-            <p>AfroDanz member area for bookings, subscriptions, and account support.</p>
+            <p>{t('dashboardPage.footerDescription')}</p>
             <div className="flex flex-wrap items-center gap-4">
               <Link href="/" className="transition hover:text-white">
-                Home
+                {t('dashboardPage.footerHome')}
               </Link>
               <Link href="/events" className="transition hover:text-white">
-                Events
+                {t('dashboardPage.footerEvents')}
               </Link>
               <Link href="/contact" className="transition hover:text-white">
-                Support
+                {t('dashboardPage.footerSupport')}
               </Link>
               <Link href="/privacy" className="transition hover:text-white">
-                Privacy
+                {t('dashboardPage.footerPrivacy')}
               </Link>
               <Link href="/terms" className="transition hover:text-white">
-                Terms
+                {t('dashboardPage.footerTerms')}
               </Link>
             </div>
           </div>

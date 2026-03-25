@@ -12,20 +12,18 @@ import {
   savePreferences,
   type CookieConsent,
 } from '@/lib/cookie-consent';
+import { useTranslation } from '@/lib/locale-context';
 
 const panelTransition = {
   duration: 0.24,
   ease: [0.22, 1, 0.36, 1],
 } as const;
 
-const CATEGORY_LABELS = [
-  { key: 'analytics', label: 'Analytics cookies' },
-  { key: 'marketing', label: 'Marketing cookies' },
-] as const;
-
-type CategoryKey = (typeof CATEGORY_LABELS)[number]['key'];
+const CATEGORY_KEYS = ['analytics', 'marketing'] as const;
+type CategoryKey = (typeof CATEGORY_KEYS)[number];
 
 export function CookieBanner() {
+  const t = useTranslation();
   const [consent, setConsent] = useState<CookieConsent | null>(null);
   const [showPanel, setShowPanel] = useState(false);
   const [prefs, setPrefs] = useState<Record<CategoryKey, boolean>>({
@@ -71,9 +69,14 @@ export function CookieBanner() {
   const showManageTrigger = !!consent && !showPanel;
 
   const prefButtonLabel = useMemo(
-    () => (consent ? 'Manage cookies' : 'Set preferences'),
-    [consent]
+    () => (consent ? t('cookieBanner.manageCookies') : t('cookieBanner.setPreferences')),
+    [consent, t]
   );
+
+  const categoryLabels: Record<CategoryKey, string> = {
+    analytics: t('cookieBanner.analytics'),
+    marketing: t('cookieBanner.marketing'),
+  };
 
   return (
     <>
@@ -87,22 +90,22 @@ export function CookieBanner() {
           >
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <p>
-                We use cookies for essential functionality plus analytics and marketing when you consent. Read
-                our <Link href="/privacy" className="font-bold text-white/90 underline">privacy policy</Link>{' '}
-                for the details.
+                {t('cookieBanner.bannerText')}{' '}
+                <Link href="/privacy" className="font-bold text-white/90 underline">{t('cookieBanner.privacyLink')}</Link>{' '}
+                {t('cookieBanner.bannerTextEnd')}
               </p>
               <div className="flex flex-wrap gap-3">
                 <button
                   onClick={handleAcceptAll}
                   className="site-primary-button rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white"
                 >
-                  Accept All
+                  {t('cookieBanner.acceptAll')}
                 </button>
                 <button
                   onClick={() => setShowPanel(true)}
                   className="site-outline-button rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white"
                 >
-                  Manage Preferences
+                  {t('cookieBanner.managePreferences')}
                 </button>
               </div>
             </div>
@@ -121,29 +124,29 @@ export function CookieBanner() {
           >
             <div className="flex items-center justify-between">
               <p className="text-xs font-black uppercase tracking-[0.26em] text-white/70">
-                Cookie Preferences
+                {t('cookieBanner.cookiePreferences')}
               </p>
               <button
                 onClick={() => setShowPanel(false)}
                 className="text-slate-400 underline hover:text-white"
               >
-                Close
+                {t('cookieBanner.close')}
               </button>
             </div>
             <p className="mt-4 text-sm text-slate-300">
-              Essential cookies are always active. Choose whether to allow analytics or marketing cookies.
+              {t('cookieBanner.essentialInfo')}
             </p>
             <div className="mt-6 space-y-4">
-              {CATEGORY_LABELS.map((category) => (
+              {CATEGORY_KEYS.map((key) => (
                 <label
-                  key={category.key}
+                  key={key}
                   className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
                 >
-                  <span>{category.label}</span>
+                  <span>{categoryLabels[key]}</span>
                   <input
                     type="checkbox"
-                    checked={prefs[category.key]}
-                    onChange={() => toggleCategory(category.key)}
+                    checked={prefs[key]}
+                    onChange={() => toggleCategory(key)}
                     className="h-4 w-4 accent-primary"
                   />
                 </label>
@@ -154,13 +157,13 @@ export function CookieBanner() {
                 onClick={handleAcceptAll}
                 className="site-primary-button rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white"
               >
-                Accept All
+                {t('cookieBanner.acceptAll')}
               </button>
               <button
                 onClick={handleSave}
                 className="site-outline-button rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white"
               >
-                Save Preferences
+                {t('cookieBanner.savePreferences')}
               </button>
             </div>
           </motion.div>
