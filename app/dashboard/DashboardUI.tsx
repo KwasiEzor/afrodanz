@@ -1,12 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar,
   CheckCircle2,
+  ChevronDown,
   Clock3,
   CreditCard,
+  Eye,
+  EyeOff,
   ExternalLink,
   LogOut,
   MapPin,
@@ -19,10 +22,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { signOut } from 'next-auth/react';
+import { toast } from 'sonner';
 import type { Session } from 'next-auth';
 import type { Booking, Event, SubscriptionStatus } from '@prisma/client';
 import { formatPrice, formatDateLong, formatTime, formatMonthShort, formatDateCompact } from '@/lib/format';
 import { useTranslation } from '@/lib/locale-context';
+import { evaluatePasswordStrength, isPasswordStrongEnough } from '@/lib/password-strength';
+import { changePassword } from './actions';
 
 type BookingWithEvent = Booking & { event: Event };
 type DashboardTab = 'overview' | 'classes' | 'payments' | 'settings';
@@ -66,18 +72,43 @@ const TAB_LABEL_KEYS = [
   'dashboardPage.tabs.settings',
 ] as const;
 
-const NAV_LINK_KEYS = [
-  { href: '/', key: 'nav.home' },
-  { href: '/events', key: 'nav.events' },
-  { href: '/about', key: 'nav.about' },
-  { href: '/contact', key: 'nav.contact' },
-] as const;
-
 export default function DashboardUI({ user, bookings }: DashboardUIProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const [dismissedBanner, setDismissedBanner] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
   const t = useTranslation();
+
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+
+  const passwordStrength = evaluatePasswordStrength(newPassword);
+  const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500', 'bg-emerald-500'];
+
+  // Close profile dropdown on outside click / Escape
+  useEffect(() => {
+    if (!profileOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    }
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setProfileOpen(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [profileOpen]);
   const bannerKey = useMemo(() => bannerKeyFromSearchParams(searchParams), [searchParams]);
   const notification = dismissedBanner || !bannerKey ? null : t(bannerKey);
 
@@ -137,60 +168,133 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
 
       <div className="mx-auto max-w-7xl px-4 pb-16 pt-8 md:px-6">
         <header className="site-panel mb-8 rounded-[2rem] px-5 py-5">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center justify-between gap-4">
-              <Link href="/" className="flex items-center gap-3 text-white">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/18 text-accent">
-                  <Sparkles className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="display-type text-lg font-black uppercase tracking-[0.22em]">
-                    AfroDanz
-                  </p>
-                  <p className="text-[0.65rem] font-bold uppercase tracking-[0.22em] text-slate-400">
-                    {t('dashboardPage.memberDashboard')}
-                  </p>
-                </div>
-              </Link>
+          <div className="flex items-center justify-between gap-4">
+            <Link href="/" className="flex items-center gap-3 text-white">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/18 text-accent">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="display-type text-lg font-black uppercase tracking-[0.22em]">
+                  AfroDanz
+                </p>
+                <p className="text-[0.65rem] font-bold uppercase tracking-[0.22em] text-slate-400">
+                  {t('dashboardPage.memberDashboard')}
+                </p>
+              </div>
+            </Link>
 
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className="lg:hidden inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 p-3 text-red-300"
-                aria-label={t('dashboardPage.logout')}
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            </div>
-
-            <nav className="flex flex-wrap items-center gap-2">
-              {NAV_LINK_KEYS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="rounded-full border border-white/8 bg-white/5 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-slate-300 transition hover:border-primary/30 hover:text-white"
-                >
-                  {t(link.key)}
-                </Link>
-              ))}
-            </nav>
-
-            <div className="hidden lg:flex lg:items-center lg:gap-3">
+            <div className="flex items-center gap-3">
               <Link
                 href="/events"
-                className="site-outline-button inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.22em] text-white"
+                className="site-outline-button hidden items-center justify-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.22em] text-white sm:inline-flex"
               >
                 {t('dashboardPage.browseEvents')}
                 <ExternalLink className="h-4 w-4" />
               </Link>
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-5 py-3 text-xs font-black uppercase tracking-[0.22em] text-red-300"
-              >
-                <LogOut className="h-4 w-4" />
-                {t('dashboardPage.logout')}
-              </button>
+
+              {/* Profile dropdown */}
+              <div ref={profileRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setProfileOpen((v) => !v)}
+                  className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 py-2 pl-2 pr-3 transition hover:border-primary/30"
+                >
+                  {user.image ? (
+                    <Image
+                      src={user.image}
+                      alt={user.name || t('dashboardPage.memberAvatar')}
+                      width={32}
+                      height={32}
+                      className="rounded-full border border-white/10 object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/18 text-white">
+                      <User2 className="h-4 w-4" />
+                    </div>
+                  )}
+                  <span className="hidden text-sm font-bold text-white sm:inline">
+                    {user.name?.split(' ')[0] || t('dashboardPage.dancer')}
+                  </span>
+                  <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {profileOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                      transition={{ duration: 0.15 }}
+                      className="site-panel absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-[1.4rem] p-4 shadow-2xl"
+                    >
+                      <div className="mb-3 flex items-center gap-3">
+                        {user.image ? (
+                          <Image
+                            src={user.image}
+                            alt={user.name || t('dashboardPage.memberAvatar')}
+                            width={40}
+                            height={40}
+                            className="rounded-xl border border-white/10 object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/18 text-white">
+                            <User2 className="h-5 w-5" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-white">
+                            {user.name || t('dashboardPage.dancer')}
+                          </p>
+                          <p className="truncate text-xs text-slate-400">{user.email}</p>
+                          <p className="mt-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-accent">
+                            {t(membershipLabelKey(user.subscriptionStatus))}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="my-2 border-t border-white/8" />
+
+                      <nav className="space-y-1">
+                        <button
+                          type="button"
+                          onClick={() => { setActiveTab('overview'); setProfileOpen(false); }}
+                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-slate-300 transition hover:bg-white/6 hover:text-white"
+                        >
+                          <User2 className="h-4 w-4" />
+                          {t('dashboardPage.profileMenu.dashboard')}
+                        </button>
+                        <Link
+                          href="/events"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-slate-300 transition hover:bg-white/6 hover:text-white"
+                        >
+                          <Calendar className="h-4 w-4" />
+                          {t('dashboardPage.profileMenu.events')}
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => { setActiveTab('settings'); setProfileOpen(false); }}
+                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-slate-300 transition hover:bg-white/6 hover:text-white"
+                        >
+                          <Settings2 className="h-4 w-4" />
+                          {t('dashboardPage.profileMenu.settings')}
+                        </button>
+                      </nav>
+
+                      <div className="my-2 border-t border-white/8" />
+
+                      <button
+                        type="button"
+                        onClick={handleSignOut}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-red-400 transition hover:bg-red-500/10"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        {t('dashboardPage.logout')}
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
         </header>
@@ -296,7 +400,7 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                 ))}
               </div>
 
-              <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+              <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr] xl:items-start">
                 <section className="site-panel rounded-[2.4rem] p-8">
                   <p className="site-kicker mb-4">{t('dashboardPage.nextUp')}</p>
                   {nextBooking ? (
@@ -529,6 +633,151 @@ export default function DashboardUI({ user, bookings }: DashboardUIProps) {
                     {t('dashboardPage.terms')}
                   </Link>
                 </div>
+              </section>
+
+              {/* Password change section */}
+              <section className="site-panel rounded-[2.4rem] p-8">
+                <p className="site-kicker mb-4">{t('dashboardPage.settings.securitySection')}</p>
+                <h3 className="site-title text-3xl font-black uppercase text-white">{t('dashboardPage.settings.changePassword')}</h3>
+
+                <form
+                  className="mt-8 space-y-6"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (newPassword !== confirmPassword) {
+                      toast.error(t('dashboardPage.settings.passwordMismatch'));
+                      return;
+                    }
+                    if (!isPasswordStrongEnough(newPassword)) {
+                      toast.error(t('dashboardPage.settings.passwordTooWeak'));
+                      return;
+                    }
+                    setChangingPassword(true);
+                    const fd = new FormData();
+                    fd.set('currentPassword', currentPassword);
+                    fd.set('newPassword', newPassword);
+                    fd.set('confirmPassword', confirmPassword);
+                    const result = await changePassword(fd);
+                    setChangingPassword(false);
+                    if (result.success) {
+                      toast.success(t('dashboardPage.settings.passwordSuccess'));
+                      setCurrentPassword('');
+                      setNewPassword('');
+                      setConfirmPassword('');
+                    } else {
+                      toast.error(t('dashboardPage.settings.passwordError'));
+                    }
+                  }}
+                >
+                  {/* Current password */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
+                      {t('dashboardPage.settings.currentPassword')}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showCurrentPw ? 'text' : 'password'}
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        className="w-full rounded-[1.3rem] border border-white/8 bg-white/5 px-4 py-3 pr-12 text-white placeholder:text-slate-500 focus:border-primary/40 focus:outline-none"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPw((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                      >
+                        {showCurrentPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* New password */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
+                      {t('dashboardPage.settings.newPassword')}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showNewPw ? 'text' : 'password'}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="w-full rounded-[1.3rem] border border-white/8 bg-white/5 px-4 py-3 pr-12 text-white placeholder:text-slate-500 focus:border-primary/40 focus:outline-none"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPw((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                      >
+                        {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+
+                    {/* Strength meter */}
+                    {newPassword.length > 0 && (
+                      <div className="space-y-3 pt-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+                            {t('dashboardPage.settings.passwordStrength')}
+                          </span>
+                          <span className="text-xs font-bold text-slate-400">{passwordStrength.label}</span>
+                        </div>
+                        <div className="flex gap-1">
+                          {[0, 1, 2, 3, 4].map((i) => (
+                            <div
+                              key={i}
+                              className={`h-1.5 flex-1 rounded-full transition-colors ${
+                                i <= passwordStrength.score ? strengthColors[passwordStrength.score] : 'bg-white/10'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <ul className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                          {[
+                            { key: 'length', label: t('auth.req8chars') },
+                            { key: 'uppercase', label: t('auth.reqUppercase') },
+                            { key: 'lowercase', label: t('auth.reqLowercase') },
+                            { key: 'number', label: t('auth.reqNumber') },
+                            { key: 'symbol', label: t('auth.reqSymbol') },
+                          ].map((req) => {
+                            const met = passwordStrength.checks[req.key as keyof typeof passwordStrength.checks];
+                            return (
+                              <li key={req.key} className={`flex items-center gap-1.5 ${met ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                <span>{met ? '\u2713' : '\u2717'}</span>
+                                {req.label}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Confirm new password */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
+                      {t('dashboardPage.settings.confirmNewPassword')}
+                    </label>
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full rounded-[1.3rem] border border-white/8 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-primary/40 focus:outline-none"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword}
+                    className="site-primary-button inline-flex items-center gap-2 rounded-full px-6 py-3 text-xs font-black uppercase tracking-[0.22em] text-white disabled:opacity-50"
+                  >
+                    {changingPassword
+                      ? t('dashboardPage.settings.updatingPassword')
+                      : t('dashboardPage.settings.updatePassword')}
+                  </button>
+                </form>
               </section>
             </motion.div>
           )}
