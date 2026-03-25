@@ -12,7 +12,7 @@ import { BookingButton } from '@/app/components/BookingButton';
 import { isPrismaMissingTableError } from '@/lib/prisma-errors';
 import { formatDateLong, formatTime, formatPrice } from '@/lib/format';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function EventDetailPage({
   params,

@@ -91,6 +91,8 @@ export function EventsList({ initialEvents, totalPages, currentPage }: EventsLis
         </div>
 
         <select
+          id="category-filter"
+          aria-label={t('events.allCategories')}
           defaultValue={searchParams.get('category') || ''}
           onChange={(event) => handleFilterChange('category', event.target.value)}
           className="rounded-full border border-white/8 bg-white/5 px-6 py-4 text-sm font-black uppercase tracking-[0.2em] text-white outline-none"

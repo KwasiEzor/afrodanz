@@ -106,7 +106,7 @@ export function EventsPreview({
                   key={event.id}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.08 }}
+                  transition={{ delay: index * 0.03 }}
                   viewport={{ once: true }}
                   className="site-panel group relative flex flex-col overflow-hidden rounded-[2.2rem] p-8"
                 >

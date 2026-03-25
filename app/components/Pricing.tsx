@@ -75,7 +75,7 @@ export function Pricing() {
                 key={plan.id}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.08 }}
+                transition={{ delay: index * 0.03 }}
                 viewport={{ once: true }}
                 className={`relative overflow-hidden rounded-[2.2rem] p-8 ${
                   plan.popular ? 'site-panel ring-1 ring-accent/30' : 'site-panel-soft'

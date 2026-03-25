@@ -4,7 +4,7 @@ import { isPrismaMissingTableError } from '@/lib/prisma-errors';
 
 const ITEMS_PER_PAGE = 6;
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function EventsPage({
   searchParams,

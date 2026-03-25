@@ -95,10 +95,11 @@ export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
         <form onSubmit={handleSubmit} className="space-y-6 px-8 py-8">
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Title</label>
+              <label htmlFor="event-title" className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Title</label>
               <div className="relative">
                 <Info className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                 <input
+                  id="event-title"
                   required
                   name="title"
                   defaultValue={event?.title}
@@ -110,8 +111,9 @@ export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Category</label>
+              <label htmlFor="event-category" className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Category</label>
               <select
+                id="event-category"
                 name="category"
                 defaultValue={event?.category || 'Workshop'}
                 className={fieldClass()}
@@ -124,8 +126,9 @@ export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Description</label>
+            <label htmlFor="event-description" className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Description</label>
             <textarea
+              id="event-description"
               name="description"
               defaultValue={event?.description ?? ''}
               rows={4}
@@ -136,10 +139,11 @@ export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
 
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Date & Time</label>
+              <label htmlFor="event-date" className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Date & Time</label>
               <div className="relative">
                 <Calendar className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                 <input
+                  id="event-date"
                   required
                   name="date"
                   type="datetime-local"
@@ -150,10 +154,11 @@ export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Location</label>
+              <label htmlFor="event-location" className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Location</label>
               <div className="relative">
                 <MapPin className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                 <input
+                  id="event-location"
                   required
                   name="location"
                   defaultValue={event?.location}
@@ -166,10 +171,11 @@ export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
 
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Price (€)</label>
+              <label htmlFor="event-price" className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Price (€)</label>
               <div className="relative">
                 <Euro className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                 <input
+                  id="event-price"
                   required
                   name="price"
                   type="number"
@@ -183,10 +189,11 @@ export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Capacity</label>
+              <label htmlFor="event-capacity" className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Capacity</label>
               <div className="relative">
                 <Users className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                 <input
+                  id="event-capacity"
                   required
                   name="capacity"
                   type="number"
@@ -200,8 +207,9 @@ export function CreateEventForm({ onClose, event }: CreateEventFormProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Image URL</label>
+            <label htmlFor="event-image" className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Image URL</label>
             <input
+              id="event-image"
               name="image"
               defaultValue={event?.image ?? ''}
               placeholder="https://example.com/image.jpg"

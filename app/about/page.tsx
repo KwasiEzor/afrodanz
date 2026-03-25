@@ -5,7 +5,7 @@ import prisma from '@/lib/prisma';
 import { getCopy, translate } from '@/lib/i18n';
 import { getServerLocale } from '@/lib/locale.server';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export default async function AboutPage() {
   const locale = await getServerLocale();
@@ -66,6 +66,7 @@ export default async function AboutPage() {
               src="/page_facbook_kouami_atelier_danse_africaine.jpg"
               alt="AfroDanz community"
               fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover"
             />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,10,18,0.1),rgba(7,10,18,0.8))]" />

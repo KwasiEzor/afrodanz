@@ -5,7 +5,7 @@ import "./globals.css";
 import { Navbar } from "./components/Navbar";
 import { Providers } from "./providers";
 import { Toaster } from 'sonner';
-import { CookieBanner } from "./components/CookieBanner";
+import { LazyCookieBanner } from "./components/LazyCookieBanner";
 import { getServerLocale } from "@/lib/locale.server";
 
 const themeStyle = {
@@ -97,7 +97,7 @@ export default async function RootLayout({
           </main>
         </Providers>
         <Toaster richColors position="top-right" />
-        <CookieBanner />
+        <LazyCookieBanner />
       </body>
     </html>
   );

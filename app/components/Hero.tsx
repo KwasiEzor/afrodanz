@@ -80,6 +80,7 @@ export function Hero() {
               alt="AfroDanz featured dancer"
               fill
               priority
+              sizes="(max-width: 768px) 100vw, 50vw"
               className="object-cover object-center"
             />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,10,18,0.08),rgba(7,10,18,0.78))]" />
