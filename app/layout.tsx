@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import theme from "./colors.json";
 import "./globals.css";
 import { Navbar } from "./components/Navbar";
+import { Footer } from "./components/Footer";
 import { Providers } from "./providers";
 import { Toaster } from 'sonner';
 import { LazyCookieBanner } from "./components/LazyCookieBanner";
@@ -95,6 +96,7 @@ export default async function RootLayout({
           <main id="main-content">
             {children}
           </main>
+          <Footer />
         </Providers>
         <Toaster richColors position="top-right" />
         <LazyCookieBanner />

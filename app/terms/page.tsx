@@ -1,6 +1,12 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { translate } from '@/lib/i18n';
 import { getServerLocale } from '@/lib/locale.server';
+
+export const metadata: Metadata = {
+  title: 'Terms of Service | AfroDanz',
+  description: 'Terms and conditions for bookings, memberships, and studio participation at AfroDanz.',
+};
 
 export default async function TermsPage() {
   const locale = await getServerLocale();

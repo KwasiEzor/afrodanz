@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Loader2, MapPin, Search, ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useDeferredValue, useEffect, useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { formatPrice, formatDateCompact } from '@/lib/format';
@@ -117,15 +118,26 @@ export function EventsList({ initialEvents, totalPages, currentPage }: EventsLis
               key={event.id}
               layout
               initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -4, transition: { duration: 0.25 } }}
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ delay: index * 0.04 }}
+              viewport={{ once: true, amount: 0.2 }}
               className="site-panel group overflow-hidden rounded-[2.3rem]"
             >
               <div className="relative min-h-[17rem] overflow-hidden">
+                {event.image && (
+                  <Image
+                    src={event.image}
+                    alt={event.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                )}
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(124,58,237,0.2),transparent_45%),linear-gradient(180deg,rgba(12,15,26,0.1),rgba(12,15,26,0.82))]" />
                 <div className="absolute inset-x-6 top-6 flex items-start justify-between gap-4">
-                  <span className="rounded-full border border-accent/22 bg-accent/10 px-4 py-2 text-[0.65rem] font-black uppercase tracking-[0.26em] text-accent">
+                  <span className="rounded-full border border-accent/22 bg-accent/10 px-4 py-2 text-[0.65rem] font-black uppercase tracking-[0.26em] text-accent backdrop-blur-sm">
                     {event.category}
                   </span>
                   <span className="rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm font-black text-white backdrop-blur-sm">

@@ -1,16 +1,26 @@
+import type { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 import { EventsList } from '../components/EventsList';
 import { isPrismaMissingTableError } from '@/lib/prisma-errors';
+import { translate } from '@/lib/i18n';
+import { getServerLocale } from '@/lib/locale.server';
 
 const ITEMS_PER_PAGE = 6;
 
 export const revalidate = 60;
+
+export const metadata: Metadata = {
+  title: 'Events | AfroDanz',
+  description: 'Browse the AfroDanz studio calendar. Find Afro dance workshops, intensives and classes near Paris.',
+};
 
 export default async function EventsPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const locale = await getServerLocale();
+  const t = (path: string) => translate(locale, path);
   const resolvedSearchParams = await searchParams;
   const page =
     typeof resolvedSearchParams.page === 'string'
@@ -63,12 +73,13 @@ export default async function EventsPage({
 
         <div className="relative mx-auto max-w-7xl">
           <div className="site-panel overflow-hidden rounded-[2.8rem] px-8 py-12 md:px-14 md:py-16">
-            <p className="site-kicker mb-4">Live event library</p>
+            <p className="site-kicker mb-4">{t('events.eventsPage.kicker')}</p>
             <h1 className="site-title max-w-4xl text-4xl font-black uppercase leading-[0.92] text-white md:text-6xl">
-              Find Your <span className="site-highlight">Beat</span>
+              {t('events.eventsPage.title')}{' '}
+              <span className="site-highlight">{t('events.eventsPage.titleHighlight')}</span>
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-300">
-              Browse the studio calendar, filter by energy, and lock in your next session before the room fills up.
+              {t('events.eventsPage.description')}
             </p>
           </div>
         </div>

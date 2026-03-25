@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Globe, Heart, Sparkles, Star, Users } from 'lucide-react';
@@ -6,6 +7,11 @@ import { getCopy, translate } from '@/lib/i18n';
 import { getServerLocale } from '@/lib/locale.server';
 
 export const revalidate = 3600;
+
+export const metadata: Metadata = {
+  title: 'About | AfroDanz',
+  description: 'Learn about AfroDanz — the Afro dance studio blending technique, culture, music, and atmosphere into one creative space.',
+};
 
 export default async function AboutPage() {
   const locale = await getServerLocale();
@@ -77,9 +83,10 @@ export default async function AboutPage() {
       <section className="px-4 py-24 md:px-6">
         <div className="site-panel mx-auto max-w-7xl rounded-[2.8rem] p-8 md:p-12">
           <div className="mb-12">
-            <p className="site-kicker mb-4">What we protect</p>
+            <p className="site-kicker mb-4">{t('about.valuesSection.kicker')}</p>
             <h2 className="site-title text-3xl font-black uppercase text-white md:text-5xl">
-              The Heartbeat of <span className="site-highlight">Heritage</span>
+              {t('about.valuesSection.title')}{' '}
+              <span className="site-highlight">{t('about.valuesSection.titleHighlight')}</span>
             </h2>
           </div>
 

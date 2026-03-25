@@ -69,6 +69,28 @@ const dictionary = {
       allCategories: 'Toutes les catégories',
       viewDetails: 'Voir les détails',
       noResults: 'Aucun atelier trouvé pour ces filtres.',
+      eventDetail: {
+        backToEvents: 'Retour aux événements',
+        secureBooking: 'Réservation sécurisée',
+        secureBookingBody: 'Votre place est confirmée une fois le paiement effectué. Les réservations actives sont protégées contre la survente.',
+        eventSpotlight: 'Événement en vedette',
+        session: 'Session',
+        date: 'Date',
+        time: 'Heure',
+        venue: 'Lieu',
+        spotsLeft: 'Places restantes',
+        totalPrice: 'Prix total',
+        moreEvents: 'Plus d\u2019événements',
+        moreEventsDescription: 'Gardez l\u2019élan avec d\u2019autres sessions du calendrier AfroDanz.',
+        moreEventsEmpty: 'C\u2019est le dernier événement à venir pour le moment.',
+        defaultDescription: 'Rejoignez-nous pour une expérience immersive de danse Afro. Maîtrisez les fondamentaux, la musicalité et des chorégraphies intenses en une session studio cinématique.',
+      },
+      eventsPage: {
+        kicker: 'Bibliothèque d\u2019événements',
+        title: 'Trouvez votre',
+        titleHighlight: 'Beat',
+        description: 'Parcourez le calendrier du studio, filtrez par énergie et réservez votre prochaine session avant que la salle ne soit pleine.',
+      },
     },
     booking: {
       alreadyBooked: 'Déjà réservé',
@@ -98,12 +120,35 @@ const dictionary = {
       planButton: 'Choisir un plan',
       talkButton: 'Parler à l’équipe',
     },
+    navbar: {
+      rhythmStudio: 'Studio Rythmique',
+    },
     footer: {
       description: 'Cours Afro cinématiques, ateliers et adhésions depuis Paris.',
       privacy: 'Vie privée',
       terms: 'Conditions',
       contact: 'Contact',
       copyright: '© 2026 AfroDanz Studio',
+      nav: {
+        home: 'Accueil',
+        events: 'Événements',
+        about: 'À propos',
+      },
+    },
+    admin: {
+      footerText: 'Outils admin pour les membres, revenus et événements.',
+      footerHome: 'Accueil',
+      footerEvents: 'Événements',
+      footerSupport: 'Support',
+      footerPrivacy: 'Vie privée',
+      footerTerms: 'Conditions',
+    },
+    notFound: {
+      kicker: 'Page introuvable',
+      title: 'Cette page n\u2019existe pas',
+      description: 'L\u2019URL demandée ne correspond à aucune page. Vérifiez l\u2019adresse ou revenez à l\u2019accueil.',
+      goHome: 'Retour à l\u2019accueil',
+      browseEvents: 'Parcourir les événements',
     },
     pricing: {
       kicker: 'Système d’adhésion',
@@ -155,10 +200,15 @@ const dictionary = {
     },
     about: {
       kicker: 'Histoire du studio',
-      title: 'Plus qu’un cours de danse',
+      title: 'Plus qu\u2019un cours de danse',
       titleHighlight: 'Une classe',
       description:
-        'AfroDanz naît d’un désir d’unir technique, culture, musique et ambiance dans un seul lieu vivant.',
+        'AfroDanz naît d\u2019un désir d\u2019unir technique, culture, musique et ambiance dans un seul lieu vivant.',
+      valuesSection: {
+        kicker: 'Ce que nous protégeons',
+        title: 'Le cœur de',
+        titleHighlight: 'l\u2019héritage',
+      },
       cards: {
         passion: {
           title: 'Animé par la passion',
@@ -270,7 +320,14 @@ const dictionary = {
       description:
         'Nous collectons uniquement les données nécessaires aux réservations, adhésions et demandes de support. Nous ne vendons pas vos données.',
       dataQuestions:
-        'Pour toute correction ou suppression, contactez-nous avec l’email lié à votre compte.',
+        'Pour toute correction ou suppression, contactez-nous avec l\u2019email lié à votre compte.',
+      whatWeCollect: 'Ce que nous collectons',
+      whatWeCollectBody: 'Détails du compte, historique de réservation, identifiants liés aux paiements Stripe et messages envoyés via le formulaire de contact.',
+      howWeUseIt: 'Comment nous les utilisons',
+      howWeUseItBody: 'Pour gérer vos cours, traiter les abonnements, répondre aux demandes de support et garantir la sécurité de la plateforme.',
+      contactButton: 'Contacter AfroDanz',
+      cookiesTitle: 'Cookies &',
+      cookiesTitleHighlight: 'Consentement',
       cookies: {
         title: 'Cookies & consentement',
         body:
@@ -535,6 +592,28 @@ const dictionary = {
       allCategories: 'All Categories',
       viewDetails: 'View Details',
       noResults: 'No workshops found matching your current filters.',
+      eventDetail: {
+        backToEvents: 'Back to Events',
+        secureBooking: 'Secure Booking',
+        secureBookingBody: 'Your place is confirmed when payment completes. Active reservations are protected to stop overselling.',
+        eventSpotlight: 'Event spotlight',
+        session: 'Session',
+        date: 'Date',
+        time: 'Time',
+        venue: 'Venue',
+        spotsLeft: 'Spots Left',
+        totalPrice: 'Total Price',
+        moreEvents: 'More Events',
+        moreEventsDescription: 'Keep the momentum going with more sessions from the AfroDanz calendar.',
+        moreEventsEmpty: 'This is the last upcoming event on the calendar for now.',
+        defaultDescription: 'Join us for an immersive Afro dance experience. Master foundations, musicality, and high-energy choreography in one cinematic studio session.',
+      },
+      eventsPage: {
+        kicker: 'Live event library',
+        title: 'Find Your',
+        titleHighlight: 'Beat',
+        description: 'Browse the studio calendar, filter by energy, and lock in your next session before the room fills up.',
+      },
     },
     booking: {
       alreadyBooked: 'Already Booked',
@@ -564,6 +643,9 @@ const dictionary = {
       planButton: 'Choose a plan',
       talkButton: 'Talk to the team',
     },
+    navbar: {
+      rhythmStudio: 'Rhythm Studio',
+    },
     footer: {
       description:
         'Cinematic Afro dance classes, workshops, and memberships from Paris.',
@@ -571,6 +653,26 @@ const dictionary = {
       terms: 'Terms',
       contact: 'Contact',
       copyright: '© 2026 AfroDanz Studio',
+      nav: {
+        home: 'Home',
+        events: 'Events',
+        about: 'About',
+      },
+    },
+    admin: {
+      footerText: 'Admin-level tools for members, revenue, and events.',
+      footerHome: 'Home',
+      footerEvents: 'Events',
+      footerSupport: 'Support',
+      footerPrivacy: 'Privacy',
+      footerTerms: 'Terms',
+    },
+    notFound: {
+      kicker: 'Page not found',
+      title: 'This page doesn\u2019t exist',
+      description: 'The URL you requested doesn\u2019t match any page. Check the address or head back home.',
+      goHome: 'Go Home',
+      browseEvents: 'Browse Events',
     },
     pricing: {
       kicker: 'Membership system',
@@ -626,6 +728,11 @@ const dictionary = {
       titleHighlight: 'A Dance Class',
       description:
         'AfroDanz was built as a movement space for dancers who want technique, culture, music, and atmosphere in the same room.',
+      valuesSection: {
+        kicker: 'What we protect',
+        title: 'The Heartbeat of',
+        titleHighlight: 'Heritage',
+      },
       cards: {
         passion: {
           title: 'Driven by passion',
@@ -738,6 +845,13 @@ const dictionary = {
         'We collect only the data needed to run bookings, memberships, and support requests. We do not sell personal data.',
       dataQuestions:
         'For correction or deletion requests, contact us with the email attached to your account.',
+      whatWeCollect: 'What We Collect',
+      whatWeCollectBody: 'Account details, booking history, payment-related identifiers from Stripe, and messages submitted through the contact form.',
+      howWeUseIt: 'How We Use It',
+      howWeUseItBody: 'To manage your classes, process subscriptions, respond to support requests, and keep the platform secure.',
+      contactButton: 'Contact AfroDanz',
+      cookiesTitle: 'Cookies &',
+      cookiesTitleHighlight: 'Consent',
       cookies: {
         title: 'Cookies & Consent',
         body:

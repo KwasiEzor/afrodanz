@@ -1,8 +1,14 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { ContactForm } from './ContactForm';
 import { getCopy, translate } from '@/lib/i18n';
 import { getServerLocale } from '@/lib/locale.server';
+
+export const metadata: Metadata = {
+  title: 'Contact | AfroDanz',
+  description: 'Get in touch with AfroDanz for memberships, private sessions, workshops, and booking inquiries.',
+};
 
 const MAPS_LINK =
   'https://www.google.com/maps/search/?api=1&query=123+Rhythm+Street%2C+75001+Paris%2C+France';

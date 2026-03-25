@@ -23,6 +23,7 @@ import {
 } from '@/app/components/admin/CreateEventForm';
 import { deleteEvent } from '@/app/actions/events';
 import { formatPrice, formatDateCompact } from '@/lib/format';
+import { useTranslation } from '@/lib/locale-context';
 
 type AdminUserPreview = {
   name: string | null;
@@ -83,6 +84,7 @@ export default function AdminDashboardUI({
   recentBookings,
   allEvents,
 }: AdminDashboardUIProps) {
+  const t = useTranslation();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<EditableEventFields | null>(null);
   const [viewingAttendees, setViewingAttendees] = useState<AdminEventRow | null>(null);
@@ -464,22 +466,22 @@ export default function AdminDashboardUI({
 
       <footer className="mt-10 border-t border-white/8 pt-8">
         <div className="flex flex-col gap-4 text-sm text-slate-400 md:flex-row md:items-center md:justify-between">
-          <p>Admin-level tools for members, revenue, and events.</p>
+          <p>{t('admin.footerText')}</p>
           <div className="flex flex-wrap items-center gap-4">
             <Link href="/" className="transition hover:text-white">
-              Home
+              {t('admin.footerHome')}
             </Link>
             <Link href="/events" className="transition hover:text-white">
-              Events
+              {t('admin.footerEvents')}
             </Link>
             <Link href="/contact" className="transition hover:text-white">
-              Support
+              {t('admin.footerSupport')}
             </Link>
             <Link href="/privacy" className="transition hover:text-white">
-              Privacy
+              {t('admin.footerPrivacy')}
             </Link>
             <Link href="/terms" className="transition hover:text-white">
-              Terms
+              {t('admin.footerTerms')}
             </Link>
           </div>
         </div>

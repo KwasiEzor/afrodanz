@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { bookEvent } from '@/app/actions/bookings';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { toast } from 'sonner';
 import { useTranslation } from '@/lib/locale-context';
 import { formatPrice, formatDateShort, formatTime } from '@/lib/format';
@@ -18,6 +19,7 @@ export type EventPreviewItem = {
   location: string;
   price: number;
   category: string;
+  image?: string | null;
 };
 
 interface EventsPreviewProps {
@@ -106,23 +108,31 @@ export function EventsPreview({
                   key={event.id}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
+                  whileHover={{ y: -6, transition: { duration: 0.25 } }}
                   transition={{ delay: index * 0.03 }}
                   viewport={{ once: true }}
-                  className="site-panel group relative flex flex-col overflow-hidden rounded-[2.2rem] p-8"
+                  className="site-panel group relative flex flex-col overflow-hidden rounded-[2.2rem]"
                 >
-                  <div className="absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(34,211,238,0.6),transparent)]" />
-                  <div className="absolute -right-12 top-10 h-32 w-32 rounded-full bg-primary/18 blur-3xl" />
-
-                  <div className="relative flex flex-1 flex-col">
-                    <div className="mb-8 flex items-start justify-between gap-4">
-                      <span className="rounded-full border border-accent/20 bg-accent/10 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-accent">
+                  <div className="relative h-48 overflow-hidden">
+                    <Image
+                      src={event.image || '/page_facbook_kouami_atelier_danse_africaine.jpg'}
+                      alt={event.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,10,18,0.1),rgba(8,10,18,0.7))]" />
+                    <div className="absolute inset-x-6 top-6 flex items-start justify-between gap-4">
+                      <span className="rounded-full border border-accent/20 bg-accent/10 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-accent backdrop-blur-sm">
                         {event.category}
                       </span>
-                      <span className="display-type text-3xl font-black text-white">
+                      <span className="display-type rounded-full border border-white/10 bg-black/30 px-4 py-2 text-lg font-black text-white backdrop-blur-sm">
                         {formatPrice(event.price)}
                       </span>
                     </div>
+                  </div>
 
+                  <div className="relative flex flex-1 flex-col p-8">
                     <Link href={`/events/${event.slug}`} className="block">
                       <h3 className="site-title text-3xl font-black uppercase leading-none text-white transition-colors group-hover:text-accent">
                         {event.title}

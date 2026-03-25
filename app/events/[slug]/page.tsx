@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
@@ -11,14 +12,48 @@ import {
 import { BookingButton } from '@/app/components/BookingButton';
 import { isPrismaMissingTableError } from '@/lib/prisma-errors';
 import { formatDateLong, formatTime, formatPrice } from '@/lib/format';
+import { translate } from '@/lib/i18n';
+import { getServerLocale } from '@/lib/locale.server';
 
 export const revalidate = 60;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  let event: { title: string; description: string | null; image: string | null } | null = null;
+  try {
+    event = await prisma.event.findUnique({
+      where: { slug },
+      select: { title: true, description: true, image: true },
+    });
+  } catch {
+    // fall through to defaults
+  }
+  if (!event) {
+    return { title: 'Event Not Found | AfroDanz' };
+  }
+  const description = event.description || 'Join this AfroDanz workshop and experience Afro dance at its finest.';
+  return {
+    title: `${event.title} | AfroDanz`,
+    description,
+    openGraph: {
+      title: event.title,
+      description,
+      images: event.image ? [{ url: event.image }] : undefined,
+    },
+  };
+}
 
 export default async function EventDetailPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const locale = await getServerLocale();
+  const t = (path: string) => translate(locale, path);
   const session = await auth();
   const { slug } = await params;
 
@@ -75,6 +110,7 @@ export default async function EventDetailPage({
         location: true,
         price: true,
         category: true,
+        image: true,
       },
     });
 
@@ -104,6 +140,7 @@ export default async function EventDetailPage({
   const previewEvents: EventPreviewItem[] = relatedEvents.map((relatedEvent) => ({
     ...relatedEvent,
     date: relatedEvent.date.toISOString(),
+    image: relatedEvent.image,
   }));
 
   return (
@@ -115,7 +152,7 @@ export default async function EventDetailPage({
             className="site-outline-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-white"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Events
+            {t('events.eventDetail.backToEvents')}
           </Link>
         </nav>
 
@@ -141,10 +178,10 @@ export default async function EventDetailPage({
                 </div>
                 <div>
                   <h2 className="text-lg font-black uppercase tracking-[0.2em] text-white">
-                    Secure Booking
+                    {t('events.eventDetail.secureBooking')}
                   </h2>
                   <p className="mt-2 text-sm leading-7 text-slate-400">
-                    Your place is confirmed when payment completes. Active reservations are protected to stop overselling.
+                    {t('events.eventDetail.secureBookingBody')}
                   </p>
                 </div>
               </div>
@@ -152,42 +189,41 @@ export default async function EventDetailPage({
           </div>
 
           <div className="site-panel rounded-[2.8rem] p-8 md:p-10">
-            <p className="site-kicker mb-4">Event spotlight</p>
+            <p className="site-kicker mb-4">{t('events.eventDetail.eventSpotlight')}</p>
             <h1 className="site-title text-4xl font-black uppercase leading-[0.92] text-white md:text-6xl">
               {event.title.split(' ')[0]}
               <span className="site-highlight block">
-                {event.title.split(' ').slice(1).join(' ') || 'Session'}
+                {event.title.split(' ').slice(1).join(' ') || t('events.eventDetail.session')}
               </span>
             </h1>
 
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-              {event.description ||
-                'Join us for an immersive Afro dance experience. Master foundations, musicality, and high-energy choreography in one cinematic studio session.'}
+              {event.description || t('events.eventDetail.defaultDescription')}
             </p>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-2">
               <div className="site-panel-soft rounded-[1.8rem] p-5">
                 <Calendar className="mb-3 h-5 w-5 text-secondary" />
-                <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">Date</p>
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">{t('events.eventDetail.date')}</p>
                 <p className="mt-2 font-bold text-white">
                   {formatDateLong(event.date)}
                 </p>
               </div>
               <div className="site-panel-soft rounded-[1.8rem] p-5">
                 <Clock className="mb-3 h-5 w-5 text-secondary" />
-                <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">Time</p>
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">{t('events.eventDetail.time')}</p>
                 <p className="mt-2 font-bold text-white">
                   {formatTime(event.date)}
                 </p>
               </div>
               <div className="site-panel-soft rounded-[1.8rem] p-5">
                 <MapPin className="mb-3 h-5 w-5 text-secondary" />
-                <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">Venue</p>
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">{t('events.eventDetail.venue')}</p>
                 <p className="mt-2 font-bold text-white">{event.location}</p>
               </div>
               <div className="site-panel-soft rounded-[1.8rem] p-5">
                 <Users className="mb-3 h-5 w-5 text-secondary" />
-                <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">Spots Left</p>
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">{t('events.eventDetail.spotsLeft')}</p>
                 <p className="mt-2 font-bold text-white">
                   {spotsLeft > 0 ? spotsLeft : 0} / {event.capacity}
                 </p>
@@ -199,7 +235,7 @@ export default async function EventDetailPage({
             <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">
-                  Total Price
+                  {t('events.eventDetail.totalPrice')}
                 </p>
                 <p className="display-type mt-2 text-5xl font-black text-white">
                   {formatPrice(event.price)}
@@ -219,9 +255,9 @@ export default async function EventDetailPage({
       <section className="mt-20">
         <EventsPreview
           events={previewEvents}
-          title="More Events"
-          description="Keep the momentum going with more sessions from the AfroDanz calendar."
-          emptyMessage="This is the last upcoming event on the calendar for now."
+          title={t('events.eventDetail.moreEvents')}
+          description={t('events.eventDetail.moreEventsDescription')}
+          emptyMessage={t('events.eventDetail.moreEventsEmpty')}
         />
       </section>
     </div>

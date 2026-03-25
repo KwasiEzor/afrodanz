@@ -48,8 +48,7 @@ export function Navbar() {
   if (
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/admin') ||
-    pathname === '/login' ||
-    pathname.startsWith('/events/')
+    pathname === '/login'
   ) {
     return null;
   }
@@ -77,7 +76,7 @@ export function Navbar() {
                 AfroDanz
               </p>
               <p className="text-[0.65rem] font-bold uppercase tracking-[0.26em] text-slate-400">
-                Rhythm Studio
+                {t('navbar.rhythmStudio')}
               </p>
             </div>
           </Link>

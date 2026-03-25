@@ -45,6 +45,7 @@ export default async function Home() {
         location: true,
         price: true,
         category: true,
+        image: true,
       },
     });
 
@@ -64,6 +65,7 @@ export default async function Home() {
   const previewEvents: EventPreviewItem[] = featuredEvents.map((event) => ({
     ...event,
     date: event.date.toISOString(),
+    image: event.image,
   }));
 
   return (
@@ -125,22 +127,6 @@ export default async function Home() {
         </div>
       </section>
 
-      <footer className="border-t border-white/6 px-4 py-12 md:px-6">
-        <div className="mx-auto flex max-w-7xl flex-col gap-8 rounded-[2rem] border border-white/6 bg-white/4 px-6 py-8 backdrop-blur-xl md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="display-type text-2xl font-black uppercase tracking-[0.24em] text-white">
-              AfroDanz
-            </p>
-            <p className="mt-2 text-sm text-slate-400">{t('footer.description')}</p>
-          </div>
-          <div className="flex flex-wrap gap-6 text-xs font-black uppercase tracking-[0.24em] text-slate-400">
-            <Link href="/privacy" className="hover:text-white">{t('footer.privacy')}</Link>
-            <Link href="/terms" className="hover:text-white">{t('footer.terms')}</Link>
-            <Link href="/contact" className="hover:text-white">{t('footer.contact')}</Link>
-          </div>
-          <p className="text-sm text-slate-500">{t('footer.copyright')}</p>
-        </div>
-      </footer>
     </div>
   );
 }
